@@ -5,26 +5,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor Pro - SaaS</title>
     
-    <!-- 1. TAILWIND CSS -->
+    <!-- === 1. CONFIGURAÇÃO DE SEGURANÇA VISUAL === -->
+    <script>
+        // Bloqueio de Clique Direito
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // Bloqueio de Teclas de Atalho de Inspeção
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123) { return false; } // F12
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.keyCode == 'P'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.keyCode == 'H'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.keyCode == 'A'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.keyCode == 'F'.charCodeAt(0)) { return false; } 
+        };
+
+        // Sobrescreve Alert Nativo para UI Personalizada
+        window.alert = function(msg) {
+            if (!document.body) {
+                window.addEventListener('DOMContentLoaded', function() {
+                    window.alert(msg);
+                });
+                return;
+            }
+
+            const existing = document.getElementById('custom-alert-box');
+            if(existing) existing.remove();
+
+            const box = document.createElement('div');
+            box.id = 'custom-alert-box';
+            box.className = 'fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm fade-in';
+            box.innerHTML = `
+                <div class="bg-slate-900 p-6 rounded-2xl shadow-2xl max-w-sm w-full border border-slate-700 animate-in zoom-in-95 duration-200">
+                    <div class="mb-4 text-center">
+                        <div class="bg-blue-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-blue-400 mb-3 border border-blue-800">
+                            <i class="ph-bold ph-info text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">Aviso do Sistema</h3>
+                    </div>
+                    <p class="text-slate-300 mb-6 text-center text-sm leading-relaxed">${msg}</p>
+                    <button onclick="document.getElementById('custom-alert-box').remove()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-900/20 transition-all">Entendido</button>
+                </div>
+            `;
+            document.body.appendChild(box);
+        };
+    </script>
+
+    <!-- === 2. IMPORTAÇÃO DE BIBLIOTECAS === -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: { 
                 extend: { 
-                    colors: { slate: { 850: '#172033', 950: '#020617' } },
-                    fontFamily: { sans: ['Segoe UI', 'Roboto', 'sans-serif'] }
+                    colors: { 
+                        slate: { 850: '#172033', 950: '#020617' } 
+                    },
+                    fontFamily: { 
+                        sans: ['Segoe UI', 'Roboto', 'sans-serif'] 
+                    }
                 } 
             }
         }
     </script>
-
-    <!-- 2. BIBLIOTECAS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!-- 3. ESTILOS GERAIS -->
+    <!-- === 3. ESTILOS CSS === -->
     <style>
         body { 
             font-family: 'Segoe UI', sans-serif; 
@@ -40,50 +92,77 @@
             cursor: text; 
         }
         
-        /* Animações */
-        .fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Animações de Entrada */
+        .fade-in { 
+            animation: fadeIn 0.5s ease-out; 
+        }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
         
-        /* Scrollbar */
+        /* Scrollbar Personalizada */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
         
-        .blur-content { filter: blur(10px); pointer-events: none; transition: filter 0.5s; opacity: 0.3; }
+        /* Efeito Blur para transições */
+        .blur-content { 
+            filter: blur(12px); 
+            pointer-events: none; 
+            transition: filter 0.5s; 
+            opacity: 0.3; 
+        }
         
         /* Sidebar Transition */
-        #sidebar { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s; }
+        #sidebar { 
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s; 
+        }
         .sidebar-closed { margin-left: -18rem; } 
         @media (max-width: 1280px) {
             .sidebar-closed { margin-left: 0; transform: translateX(-100%); }
             .sidebar-open { transform: translateX(0); }
         }
         
-        .health-bar-fill { transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s; }
+        /* Barra de Saúde Financeira */
+        .health-bar-fill { 
+            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s; 
+        }
         
         /* Animação Background Login */
-        .animate-blob { animation: float-blob 10s infinite alternate cubic-bezier(0.4, 0, 0.2, 1); }
+        .animate-blob { 
+            animation: float-blob 10s infinite alternate cubic-bezier(0.4, 0, 0.2, 1); 
+        }
         @keyframes float-blob {
             0% { transform: translate(0,0) scale(1); }
             33% { transform: translate(30px, -50px) scale(1.1); }
             66% { transform: translate(-20px, 20px) scale(0.9); }
             100% { transform: translate(0,0) scale(1); }
         }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 h-screen w-screen overflow-hidden flex selection:bg-blue-500/30 selection:text-blue-200">
 
     <!-- === TELA DE LOGIN (COM BACKGROUND E PARTÍCULAS) === -->
     <div id="login-overlay" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-4 transition-opacity duration-500 overflow-hidden">
+        
+        <!-- Canvas para Partículas JS -->
         <canvas id="login-bg-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+        
+        <!-- Gradiente Sutil de Fundo -->
         <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-950/90 pointer-events-none z-0"></div>
+        
+        <!-- Luzes em Movimento (CSS Puro) -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
             <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-[100px] opacity-40 animate-blob"></div>
             <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-blue-600 rounded-full mix-blend-screen filter blur-[100px] opacity-40 animate-blob animation-delay-2000"></div>
             <div class="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-screen filter blur-[100px] opacity-40 animate-blob animation-delay-4000"></div>
         </div>
 
+        <!-- Card de Login -->
         <div class="relative w-full max-w-sm bg-white/5 dark:bg-slate-900/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/10 p-10 text-center animate-in zoom-in-95 duration-500 ring-1 ring-white/10 z-10">
             <div class="mb-8 flex justify-center">
                 <div class="relative group cursor-pointer select-none">
@@ -100,20 +179,27 @@
             <form id="login-form" class="space-y-5 text-left">
                 <div>
                     <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-envelope text-slate-400 group-focus-within:text-blue-400 transition-colors"></i></div>
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="ph-bold ph-envelope text-slate-400 group-focus-within:text-blue-400 transition-colors"></i>
+                        </div>
                         <input type="email" id="login-email" placeholder="E-mail de Acesso" class="w-full py-4 pl-12 pr-4 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm" required>
                     </div>
                 </div>
+                
                 <div>
                     <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-lock-key text-slate-400 group-focus-within:text-blue-400 transition-colors"></i></div>
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="ph-bold ph-lock-key text-slate-400 group-focus-within:text-blue-400 transition-colors"></i>
+                        </div>
                         <input type="password" id="login-pass" placeholder="Sua Senha" class="w-full py-4 pl-12 pr-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm" required>
                     </div>
                 </div>
+
                 <button type="submit" id="login-btn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 transition-all transform active:scale-[0.98] border border-white/10 flex justify-center items-center gap-2">
                     <span>Entrar</span>
                 </button>
             </form>
+            
             <p id="login-msg" class="mt-6 text-xs text-rose-400 hidden text-center bg-rose-500/10 p-2 rounded border border-rose-500/20"></p>
         </div>
     </div>
@@ -156,7 +242,7 @@
                     <button onclick="abrirConfig()" class="flex-1 p-2.5 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700 shadow-sm" title="Configurações e API"><i class="ph-bold ph-gear text-lg"></i></button>
                     <!-- Modo Escuro Fixo -->
                     <button class="flex-1 p-2.5 rounded-lg bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 shadow-sm" title="Modo Escuro Fixo"><i class="ph-fill ph-moon text-lg"></i></button>
-                    <button onclick="logout()" class="flex-1 p-2.5 rounded-lg bg-slate-800 text-rose-500 hover:bg-rose-900/20 hover:text-rose-400 transition-colors border border-slate-700 shadow-sm" title="Sair"><i class="ph-bold ph-sign-out text-lg"></i></button>
+                    <button onclick="location.reload()" class="flex-1 p-2.5 rounded-lg bg-slate-800 text-rose-500 hover:bg-rose-900/20 hover:text-rose-400 transition-colors border border-slate-700 shadow-sm" title="Bloquear"><i class="ph-bold ph-lock-key text-lg"></i></button>
                 </div>
             </div>
         </aside>
@@ -197,7 +283,7 @@
                                         <input type="text" id="lead-social" placeholder="Social Link" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     </div>
                                     <input type="number" id="lead-valor" placeholder="Valor (R$)" step="0.01" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold">Cadastrar Lead</button>
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold">Cadastrar</button>
                                 </form>
                             </div>
                         </div>
@@ -416,37 +502,34 @@
             }
         });
 
-        // LOGIN COM AUTO-REGISTRO DE SEGURANÇA
         document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
             const btn = document.getElementById('login-btn');
-            const msg = document.getElementById('login-msg');
             const originalText = btn.innerHTML;
-            
+            const msg = document.getElementById('login-msg');
             btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>';
             msg.classList.add('hidden');
             
-            signInWithEmailAndPassword(auth, email, pass)
+            signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value)
             .catch((error) => {
+                // Auto-create logic for easier testing/demo
                 if(error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                    if(confirm("Usuário não encontrado. Deseja criar esta conta agora?")) {
-                         createUserWithEmailAndPassword(auth, email, pass)
+                     if(confirm("Usuário não encontrado. Deseja criar esta conta agora?")) {
+                         createUserWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value)
                          .then(() => alert("Conta criada! Entrando..."))
                          .catch(err => {
                              msg.innerText = "Erro ao criar: " + err.message;
                              msg.classList.remove('hidden');
                              btn.innerHTML = originalText;
                          });
-                    } else {
-                        msg.innerText = "Erro: Credenciais inválidas.";
-                        msg.classList.remove('hidden');
+                     } else {
+                        msg.innerText = "Erro: " + error.message; 
+                        msg.classList.remove('hidden'); 
                         btn.innerHTML = originalText;
-                    }
+                     }
                 } else {
-                    msg.innerText = "Erro: " + error.code;
-                    msg.classList.remove('hidden');
+                    msg.innerText = "Erro: " + error.message; 
+                    msg.classList.remove('hidden'); 
                     btn.innerHTML = originalText;
                 }
             });
