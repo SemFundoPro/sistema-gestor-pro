@@ -63,6 +63,14 @@
             settings: JSON.parse(localStorage.getItem('gestor_settings')) || { reinvestRate: 20 }
         };
         window.isOnline = false;
+        // Global visual state
+        window.showValues = localStorage.getItem('gestor_show_values') !== 'false';
+        
+        // Define formatMoney globally immediately to prevent reference errors
+        window.formatMoney = function(val) {
+            if (!window.showValues) return 'R$ •••••';
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+        };
     </script>
 
     <!-- LOADING OVERLAY -->
@@ -469,14 +477,13 @@
     <!-- UI & RENDER SCRIPT -->
     <script>
         const SYSTEM_SECRET = "@uroraSystem@2024";
-        let showValues = localStorage.getItem('gestor_show_values') !== 'false';
         let chartPJ, chartPF;
 
         function togglePrivacy() {
-            showValues = !showValues;
-            localStorage.setItem('gestor_show_values', showValues);
+            window.showValues = !window.showValues;
+            localStorage.setItem('gestor_show_values', window.showValues);
             
-            const iconClass = showValues ? 'ph-eye' : 'ph-eye-slash';
+            const iconClass = window.showValues ? 'ph-eye' : 'ph-eye-slash';
             const btnDesktop = document.getElementById('btn-eye-desktop');
             if(btnDesktop) btnDesktop.innerHTML = `<i class="ph-bold ${iconClass} text-lg"></i>`;
             const btnMobile = document.getElementById('btn-eye-mobile');
@@ -484,11 +491,6 @@
             
             renderizar();
         }
-
-        const formatMoney = (val) => {
-            if (!showValues) return 'R$ •••••';
-            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
-        };
 
         function renderizar() {
             renderCRM();
