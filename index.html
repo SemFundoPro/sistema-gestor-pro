@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor Pro</title>
+    <title>Gestor Pro - SaaS</title>
     
     <!-- 1. TAILWIND CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,22 +24,46 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!-- 3. ESTILOS -->
+    <!-- 3. ESTILOS GERAIS -->
     <style>
-        body { font-family: 'Segoe UI', sans-serif; -webkit-user-select: none; user-select: none; overflow: hidden; background-color: #020617; color: white; }
-        input, textarea, select { user-select: text; cursor: text; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            -webkit-user-select: none; 
+            user-select: none; 
+            overflow: hidden; 
+            background-color: #020617; 
+            color: white; 
+        }
+        
+        input, textarea, select { 
+            user-select: text; 
+            cursor: text; 
+        }
+        
+        /* Animações */
         .fade-in { animation: fadeIn 0.5s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
         .blur-content { filter: blur(10px); pointer-events: none; transition: filter 0.5s; opacity: 0.3; }
-        #sidebar { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Sidebar Transition */
+        #sidebar { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s; }
         .sidebar-closed { margin-left: -18rem; } 
-        @media (max-width: 1280px) { .sidebar-closed { margin-left: 0; transform: translateX(-100%); } .sidebar-open { transform: translateX(0); } }
-        .health-bar-fill { transition: width 1s, background-color 0.5s; }
-        .animate-blob { animation: float-blob 10s infinite alternate; }
+        @media (max-width: 1280px) {
+            .sidebar-closed { margin-left: 0; transform: translateX(-100%); }
+            .sidebar-open { transform: translateX(0); }
+        }
+        
+        .health-bar-fill { transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s; }
+        
+        /* Animação Background Login */
+        .animate-blob { animation: float-blob 10s infinite alternate cubic-bezier(0.4, 0, 0.2, 1); }
         @keyframes float-blob {
             0% { transform: translate(0,0) scale(1); }
             33% { transform: translate(30px, -50px) scale(1.1); }
@@ -48,142 +72,305 @@
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 h-screen w-screen overflow-hidden flex">
+<body class="bg-slate-950 text-slate-100 h-screen w-screen overflow-hidden flex selection:bg-blue-500/30 selection:text-blue-200">
 
-    <!-- LOGIN -->
-    <div id="login-overlay" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-4 transition-opacity duration-500">
+    <!-- === TELA DE LOGIN (COM BACKGROUND E PARTÍCULAS) === -->
+    <div id="login-overlay" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-4 transition-opacity duration-500 overflow-hidden">
         <canvas id="login-bg-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
         <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-950/90 pointer-events-none z-0"></div>
         <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
             <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-[100px] opacity-40 animate-blob"></div>
             <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-blue-600 rounded-full mix-blend-screen filter blur-[100px] opacity-40 animate-blob animation-delay-2000"></div>
+            <div class="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-screen filter blur-[100px] opacity-40 animate-blob animation-delay-4000"></div>
         </div>
+
         <div class="relative w-full max-w-sm bg-white/5 dark:bg-slate-900/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/10 p-10 text-center animate-in zoom-in-95 duration-500 ring-1 ring-white/10 z-10">
-            <div class="mb-8 flex justify-center"><div class="relative bg-slate-950 p-5 rounded-2xl border border-slate-800 shadow-xl"><i class="ph-fill ph-brain text-4xl text-blue-500"></i></div></div>
-            <h2 class="text-3xl font-bold text-white mb-2">Gestor Pro</h2>
-            <p class="text-xs font-medium text-slate-400 uppercase tracking-widest mb-8">Acesso Cloud & Seguro</p>
+            <div class="mb-8 flex justify-center">
+                <div class="relative group cursor-pointer select-none">
+                    <div class="absolute inset-0 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-2xl blur-lg opacity-60 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div class="relative bg-slate-950 p-5 rounded-2xl border border-slate-800 shadow-xl group-hover:scale-105 transition-transform duration-300">
+                        <i class="ph-fill ph-brain text-4xl text-transparent bg-clip-text bg-gradient-to-tr from-blue-400 to-purple-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-3xl font-bold text-white mb-2 tracking-tight drop-shadow-md">Gestor Pro</h2>
+            <p class="text-xs font-medium text-slate-400 uppercase tracking-widest mb-8 opacity-80">Acesso Cloud &bull; Seguro</p>
+
             <form id="login-form" class="space-y-5 text-left">
-                <input type="email" id="login-email" placeholder="E-mail" class="w-full py-4 px-4 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 font-medium backdrop-blur-sm" required>
-                <input type="password" id="login-pass" placeholder="Senha" class="w-full py-4 px-4 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 font-medium backdrop-blur-sm" required>
-                <button type="submit" id="login-btn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-2xl font-bold text-lg shadow-lg transition-all active:scale-[0.98]">Entrar</button>
+                <div>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-envelope text-slate-400 group-focus-within:text-blue-400 transition-colors"></i></div>
+                        <input type="email" id="login-email" placeholder="E-mail de Acesso" class="w-full py-4 pl-12 pr-4 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm" required>
+                    </div>
+                </div>
+                <div>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-lock-key text-slate-400 group-focus-within:text-blue-400 transition-colors"></i></div>
+                        <input type="password" id="login-pass" placeholder="Sua Senha" class="w-full py-4 pl-12 pr-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm" required>
+                    </div>
+                </div>
+                <button type="submit" id="login-btn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 transition-all transform active:scale-[0.98] border border-white/10 flex justify-center items-center gap-2">
+                    <span>Entrar</span>
+                </button>
             </form>
             <p id="login-msg" class="mt-6 text-xs text-rose-400 hidden text-center bg-rose-500/10 p-2 rounded border border-rose-500/20"></p>
         </div>
     </div>
 
-    <!-- APP -->
+    <!-- === ESTRUTURA PRINCIPAL DA APLICAÇÃO === -->
     <div id="app-content" class="flex flex-row h-full w-full blur-content transition-all duration-500 overflow-hidden absolute inset-0 opacity-0 pointer-events-none">
+        
+        <!-- SIDEBAR -->
         <aside id="sidebar" class="absolute xl:relative z-50 w-72 h-full bg-slate-900 border-r border-slate-800 flex flex-col shadow-2xl xl:shadow-none flex-shrink-0 transform transition-transform duration-300 xl:translate-x-0 -translate-x-full">
             <div class="p-6 border-b border-slate-800 flex items-center gap-3 shrink-0">
-                <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-lg"><i class="ph-bold ph-trend-up text-xl"></i></div>
-                <div class="overflow-hidden"><h1 class="text-lg font-bold truncate text-white">Gestor Pro</h1><p id="user-email-display" class="text-[10px] text-slate-400 font-medium mt-1 uppercase truncate">...</p></div>
-                <button onclick="toggleSidebar()" class="xl:hidden ml-auto text-slate-400 hover:text-white"><i class="ph-bold ph-x text-xl"></i></button>
+                <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20 overflow-hidden shrink-0"><i class="ph-bold ph-trend-up text-xl"></i></div>
+                <div class="overflow-hidden"><h1 class="text-lg font-bold leading-none tracking-tight truncate text-white">Gestor Pro</h1><p id="user-email-display" class="text-[10px] text-slate-400 font-medium mt-1 uppercase tracking-wider truncate">Carregando...</p></div>
+                <button onclick="toggleSidebar()" class="xl:hidden ml-auto text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
+
             <nav class="flex-1 overflow-y-auto p-4 space-y-1.5 custom-scrollbar">
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-3 mt-2">Menu Principal</div>
                 <button onclick="mudarAba('crm')" id="btn-crm" class="tab-btn w-full active px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-3 bg-blue-600 text-white shadow-md text-left"><i class="ph-bold ph-users text-lg"></i> Prospecção</button>
                 <button onclick="mudarAba('scripts')" id="btn-scripts" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-chat-text text-lg"></i> Scripts</button>
                 <button onclick="mudarAba('sem_retorno')" id="btn-sem_retorno" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-clock text-lg"></i> Sem Retorno</button>
                 <button onclick="mudarAba('ativos')" id="btn-ativos" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-check-circle text-lg"></i> Ativos</button>
                 <button onclick="mudarAba('contratos')" id="btn-contratos" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-file-text text-lg"></i> Contratos</button>
-                <button onclick="mudarAba('notas')" id="btn-notas" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-receipt text-lg"></i> Notas</button>
+                <button onclick="mudarAba('notas')" id="btn-notas" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-receipt text-lg"></i> Notas Fiscais</button>
                 <button onclick="mudarAba('inativos')" id="btn-inativos" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-user-minus text-lg"></i> Inativos</button>
+                
                 <div class="border-t border-slate-800 my-4 mx-3"></div>
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-3">Financeiro</div>
                 <button onclick="mudarAba('financeiro')" id="btn-financeiro" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-briefcase text-lg"></i> Empresa</button>
                 <button onclick="mudarAba('pessoal')" id="btn-pessoal" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-house text-lg"></i> Pessoal</button>
+                
                 <div class="border-t border-slate-800 my-4 mx-3"></div>
                 <button onclick="logout()" class="w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-rose-400 hover:bg-rose-900/20 flex items-center gap-3 text-left"><i class="ph-bold ph-sign-out text-lg"></i> Sair</button>
             </nav>
-            <div class="p-4 border-t border-slate-800 bg-slate-900/50 shrink-0 flex justify-between gap-2">
-                <button onclick="mudarAba('perfil')" class="flex-1 p-2.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors"><i class="ph-bold ph-user-gear text-lg"></i></button>
-                <button onclick="abrirConfig()" class="flex-1 p-2.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors"><i class="ph-bold ph-gear text-lg"></i></button>
-                <button onclick="togglePrivacy()" id="btn-eye-desktop" class="flex-1 p-2.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors"><i class="ph-bold ph-eye text-lg"></i></button>
+            
+            <div class="p-4 border-t border-slate-800 bg-slate-900/50 shrink-0">
+                <button onclick="mudarAba('perfil')" id="btn-perfil" class="tab-btn w-full mb-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:shadow-sm flex items-center gap-3 border border-transparent hover:border-slate-700"><i class="ph-bold ph-user-gear text-lg"></i> Meu Perfil</button>
+                <div class="flex items-center justify-between gap-2">
+                    <button onclick="togglePrivacy()" id="btn-eye-desktop" class="flex-1 p-2.5 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700 shadow-sm" title="Ocultar Valores"><i class="ph-bold ph-eye text-lg"></i></button>
+                    <!-- Engrenagem / Configurações (Abre Modal de API Key) -->
+                    <button onclick="abrirConfig()" class="flex-1 p-2.5 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700 shadow-sm" title="Configurações e API"><i class="ph-bold ph-gear text-lg"></i></button>
+                    <!-- Modo Escuro Fixo -->
+                    <button class="flex-1 p-2.5 rounded-lg bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 shadow-sm" title="Modo Escuro Fixo"><i class="ph-fill ph-moon text-lg"></i></button>
+                    <button onclick="logout()" class="flex-1 p-2.5 rounded-lg bg-slate-800 text-rose-500 hover:bg-rose-900/20 hover:text-rose-400 transition-colors border border-slate-700 shadow-sm" title="Sair"><i class="ph-bold ph-sign-out text-lg"></i></button>
+                </div>
             </div>
         </aside>
+
+        <!-- OVERLAY SIDEBAR MOBILE -->
         <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden xl:hidden backdrop-blur-sm transition-opacity"></div>
 
-        <!-- MAIN -->
+        <!-- ÁREA DIREITA -->
         <div class="flex-1 flex flex-col h-full min-w-0 bg-slate-950 relative overflow-hidden">
+            <!-- Header Mobile -->
             <header class="xl:hidden bg-slate-900 border-b border-slate-800 shrink-0 z-30 px-4 py-3 flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-3"><button onclick="toggleSidebar()" class="p-2 -ml-2 text-slate-300 hover:bg-slate-800 rounded-lg"><i class="ph-bold ph-list text-2xl"></i></button><span class="font-bold text-lg text-white">Gestor Pro</span></div>
-                <button onclick="togglePrivacy()" id="btn-eye-mobile" class="p-2 text-slate-500 dark:text-slate-400"><i class="ph-bold ph-eye text-xl"></i></button>
+                <div class="flex gap-2">
+                    <button onclick="togglePrivacy()" id="btn-eye-mobile" class="p-2 text-slate-500 dark:text-slate-400"><i class="ph-bold ph-eye text-xl"></i></button>
+                </div>
             </header>
 
             <main class="flex-1 overflow-y-auto scroll-smooth relative p-6" id="main-scroll-area">
-                <div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-xl z-[300] font-medium transition-all duration-300 translate-y-10 opacity-0 border border-slate-700"></div>
+                <div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-xl z-[300] font-medium transform transition-all duration-300 translate-y-10 opacity-0 border border-slate-700 shadow-blue-900/20"></div>
 
-                <!-- CRM -->
-                <div id="view-crm" class="view-section fade-in">
+                <!-- VIEW CRM -->
+                <div id="view-crm" class="view-section fade-in p-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm relative overflow-hidden group"><p class="text-xs text-slate-400 font-bold uppercase">Em Negociação</p><h3 class="text-2xl font-bold text-blue-400 mt-1" id="crm-potencial">R$ 0,00</h3></div>
-                        <div class="bg-slate-900 p-5 rounded-2xl border-l-4 border-emerald-600 shadow-sm border-slate-800"><p class="text-xs text-slate-400 font-bold uppercase">Ativos</p><h3 class="text-2xl font-bold text-emerald-400 mt-1" id="crm-ativos">R$ 0,00</h3></div>
-                        <div class="bg-slate-900 p-5 rounded-2xl border-l-4 border-amber-600 shadow-sm border-slate-800"><p class="text-xs text-slate-400 font-bold uppercase">Sem Retorno</p><h3 class="text-2xl font-bold text-amber-400 mt-1" id="crm-sem-retorno">R$ 0,00</h3></div>
-                        <div class="bg-slate-900 p-5 rounded-2xl border-l-4 border-slate-600 shadow-sm border-slate-800"><p class="text-xs text-slate-400 font-bold uppercase">Inativos</p><h3 class="text-2xl font-bold text-slate-300 mt-1" id="crm-inativos">R$ 0,00</h3></div>
+                        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm relative overflow-hidden group"><div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="ph-fill ph-trend-up text-6xl text-blue-600"></i></div><p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Em Negociação</p><h3 class="text-2xl font-bold text-blue-400 mt-1" id="crm-potencial">R$ 0,00</h3></div>
+                        <div class="bg-slate-900 p-5 rounded-2xl border-l-4 border-emerald-600 shadow-sm border-slate-800"><p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Ativos (Receita)</p><h3 class="text-2xl font-bold text-emerald-400 mt-1" id="crm-ativos">R$ 0,00</h3></div>
+                        <div class="bg-slate-900 p-5 rounded-2xl border-l-4 border-amber-600 shadow-sm border-slate-800"><p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Sem Retorno</p><h3 class="text-2xl font-bold text-amber-400 mt-1" id="crm-sem-retorno">R$ 0,00</h3></div>
+                        <div class="bg-slate-900 p-5 rounded-2xl border-l-4 border-slate-600 shadow-sm border-slate-800"><p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Inativos</p><h3 class="text-2xl font-bold text-slate-300 mt-1" id="crm-inativos">R$ 0,00</h3></div>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-1 bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-800 h-fit">
-                            <h3 class="font-bold text-lg mb-4 text-white">Novo Lead</h3>
-                            <form onsubmit="adicionarLead(event)" class="space-y-3">
-                                <input type="text" id="lead-nome" placeholder="Nome" required class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                                <input type="text" id="lead-empresa" placeholder="Empresa" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                                <div class="grid grid-cols-2 gap-2">
-                                    <input type="text" id="lead-doc" placeholder="CPF/CNPJ" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm">
-                                    <input type="text" id="lead-social" placeholder="Social Link" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm">
-                                </div>
-                                <input type="number" id="lead-valor" placeholder="Valor" step="0.01" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold">Cadastrar</button>
-                            </form>
+                        <div class="lg:col-span-1">
+                            <div class="bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-800 sticky top-6">
+                                <h3 class="font-bold text-lg mb-4 text-white">Novo Lead</h3>
+                                <form onsubmit="adicionarLead(event)" class="space-y-4">
+                                    <input type="text" id="lead-nome" placeholder="Nome do Cliente" required class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <input type="text" id="lead-empresa" placeholder="Empresa" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <input type="text" id="lead-doc" placeholder="CNPJ/CPF" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <input type="text" id="lead-social" placeholder="Social Link" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <input type="number" id="lead-valor" placeholder="Valor (R$)" step="0.01" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold">Cadastrar Lead</button>
+                                </form>
+                            </div>
                         </div>
-                        <div class="lg:col-span-2 space-y-4" id="lista-leads"></div>
+                        <div class="lg:col-span-2 space-y-4" id="lista-leads">
+                            <div class="text-center text-slate-500 py-10 flex flex-col items-center"><i class="ph-bold ph-spinner animate-spin text-3xl mb-2"></i><span>A carregar dados...</span></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- FINANCEIRO PJ -->
-                <div id="view-financeiro" class="view-section hidden fade-in">
+                <!-- VIEW FINANCEIRO (EMPRESA) -->
+                <div id="view-financeiro" class="view-section hidden fade-in p-6">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div class="bg-slate-900 p-4 rounded-xl border-l-4 border-emerald-500"><p class="text-sm text-emerald-400 font-bold">Receita</p><h3 class="text-2xl font-bold text-emerald-300" id="pj-receita">R$ 0,00</h3></div>
-                        <div class="bg-slate-900 p-4 rounded-xl border-l-4 border-rose-500"><p class="text-sm font-bold text-rose-400">Despesas</p><h3 class="text-2xl font-bold text-rose-300" id="pj-despesa">R$ 0,00</h3></div>
-                        <div class="bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500"><p class="text-sm font-bold text-slate-400">Caixa</p><h3 class="text-2xl font-bold text-white" id="pj-saldo">R$ 0,00</h3></div>
+                        <div class="bg-slate-900 p-4 rounded-xl border-l-4 border-rose-500"><p class="text-sm text-rose-400 font-bold">Despesas</p><h3 class="text-2xl font-bold text-rose-300" id="pj-despesa">R$ 0,00</h3></div>
+                        <div class="bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500"><p class="text-sm text-slate-400 font-bold">Caixa</p><h3 class="text-2xl font-bold text-white" id="pj-saldo">R$ 0,00</h3></div>
                     </div>
-                    
-                    <!-- MEDIDOR SAÚDE -->
+
+                    <!-- MEDIDOR DE SAÚDE -->
                     <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 shadow-sm mb-6">
-                        <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white flex gap-2"><i class="ph-fill ph-heartbeat text-rose-500 text-xl"></i> Saúde Financeira</h3><div class="flex gap-2 bg-slate-800 p-1.5 rounded-lg"><span class="text-xs font-bold text-slate-400 uppercase pt-1">Retenção:</span><input type="number" id="input-reserva" value="20" class="w-12 bg-slate-900 border border-slate-600 rounded text-center text-sm font-bold text-white" onchange="calcularSaudeFinanceira()"><span class="text-sm font-bold text-slate-300">%</span></div></div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-white flex items-center gap-2"><i class="ph-fill ph-heartbeat text-rose-500 text-xl"></i> Saúde Financeira</h3>
+                            <div class="flex items-center gap-2 bg-slate-800 p-1.5 rounded-lg">
+                                <span class="text-xs font-bold text-slate-400 uppercase">Retenção:</span>
+                                <input type="number" id="input-reserva" value="20" class="w-12 bg-slate-900 border border-slate-600 rounded text-center text-sm font-bold text-white" onchange="calcularSaudeFinanceira()">
+                                <span class="text-sm font-bold text-slate-300">%</span>
+                            </div>
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                            <div><div class="flex justify-between mb-1"><span class="text-xs text-slate-400 uppercase">Status</span><span id="label-saude-status" class="text-sm font-bold text-emerald-400">--</span></div><div class="w-full h-4 bg-slate-800 rounded-full overflow-hidden"><div id="bar-saude-fill" class="h-full bg-emerald-500 w-0 transition-all"></div></div></div>
-                            <div class="bg-indigo-900/10 p-4 rounded-xl border border-indigo-800/30 flex justify-between items-center"><div><span class="block text-xs font-bold text-slate-400 uppercase">Seu Salário</span><span class="text-[10px] text-slate-500">Pró-Labore Livre</span></div><span id="val-meu-salario" class="text-2xl font-bold text-emerald-400">R$ 0,00</span></div>
+                            <div>
+                                <div class="flex justify-between items-end mb-1"><span class="text-xs text-slate-400 uppercase">Status</span><span id="label-saude-status" class="text-sm font-bold text-emerald-400">Calculando...</span></div>
+                                <div class="w-full h-4 bg-slate-800 rounded-full overflow-hidden"><div id="bar-saude-fill" class="h-full bg-emerald-500 w-0 transition-all duration-1000"></div></div>
+                            </div>
+                            <div class="bg-indigo-900/10 p-4 rounded-xl border border-indigo-800/30 flex justify-between items-center">
+                                <div><span class="block text-xs font-bold text-slate-400 uppercase">Seu Salário</span><span class="text-[10px] text-slate-500">Pró-Labore Livre</span></div>
+                                <span id="val-meu-salario" class="text-2xl font-bold text-emerald-400">R$ 0,00</span>
+                            </div>
                         </div>
                     </div>
+
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 bg-slate-900 p-4 rounded-xl border border-slate-800 h-96"><canvas id="grafico-pj" height="250"></canvas><div class="h-48 overflow-y-auto mt-4"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pj" class="divide-y divide-slate-800"></tbody></table></div></div>
-                        <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-white">Lançar</h3><form onsubmit="adicionarTransacao(event, 'pj')" class="space-y-3"><div class="flex gap-2"><label class="flex-1 cursor-pointer bg-slate-950 p-2 rounded text-center border border-slate-800"><input type="radio" name="pj-tipo" value="entrada" checked class="hidden">Entrada</label><label class="flex-1 cursor-pointer bg-slate-950 p-2 rounded text-center border border-slate-800"><input type="radio" name="pj-tipo" value="saida" class="hidden">Saída</label></div><input type="text" id="pj-desc" placeholder="Descrição" required class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white"><input type="number" id="pj-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white"><div class="grid grid-cols-2 gap-2"><select id="pj-modalidade" class="p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm" onchange="toggleModalidade('pj')"><option value="unico">Único</option><option value="recorrente">Recorrente</option><option value="parcelado">Parcelado</option></select><input type="date" id="pj-data" required class="p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm"></div><div id="pj-parcelas-container" class="hidden"><input type="number" id="pj-parcelas" placeholder="Qtd Meses/Parcelas" class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white mt-2"></div><button type="submit" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-lg font-bold">Salvar</button></form></div>
+                        <div class="lg:col-span-2 bg-slate-900 p-4 rounded-xl border border-slate-800"><div class="h-full overflow-y-auto max-h-96"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pj" class="divide-y divide-slate-800"></tbody></table></div></div>
+                        <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 h-fit">
+                            <h3 class="font-bold text-lg mb-4 text-white">Nova Transação</h3>
+                            <form onsubmit="adicionarTransacao(event, 'pj')" class="space-y-3">
+                                <div class="flex gap-2"><label class="flex-1 cursor-pointer"><input type="radio" name="pj-tipo" value="entrada" checked class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-700 peer-checked:bg-emerald-900/30 peer-checked:text-emerald-400 text-slate-400 text-sm font-bold">Entrada</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="pj-tipo" value="saida" class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-700 peer-checked:bg-rose-900/30 peer-checked:text-rose-400 text-slate-400 text-sm font-bold">Saída</div></label></div>
+                                <input type="text" id="pj-desc" placeholder="Descrição" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                                <input type="number" id="pj-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                                <div class="grid grid-cols-2 gap-2"><select id="pj-modalidade" class="p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm" onchange="toggleModalidade('pj')"><option value="unico">Único</option><option value="recorrente">Recorrente</option><option value="parcelado">Parcelado</option></select><input type="date" id="pj-data" required class="p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm"></div>
+                                <div id="pj-parcelas-container" class="hidden"><input type="number" id="pj-parcelas" placeholder="Qtd Meses/Parcelas" class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white mt-2"></div>
+                                <button type="submit" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-lg font-bold">Salvar</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
-                <!-- PESSOAL -->
-                <div id="view-pessoal" class="view-section hidden fade-in">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"><div class="bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500"><p class="text-sm text-blue-400 font-bold">Entradas</p><h3 class="text-2xl font-bold text-blue-300" id="pf-receita">R$ 0,00</h3></div><div class="bg-slate-900 p-4 rounded-xl border-l-4 border-orange-500"><p class="text-sm text-orange-400 font-bold">Saídas</p><h3 class="text-2xl font-bold text-orange-300" id="pf-despesa">R$ 0,00</h3></div><div class="bg-slate-900 p-4 rounded-xl border-l-4 border-slate-500"><p class="text-sm text-slate-400 font-bold">Saldo</p><h3 class="text-2xl font-bold text-white" id="pf-saldo">R$ 0,00</h3></div></div>
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="lg:col-span-2 bg-slate-900 p-4 rounded-xl border border-slate-800 h-96"><canvas id="grafico-pf" height="250"></canvas><div class="h-48 overflow-y-auto mt-4"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pf" class="divide-y divide-slate-800"></tbody></table></div></div><div class="bg-slate-900 p-5 rounded-xl border border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-white">Lançar Pessoal</h3><form onsubmit="adicionarTransacao(event, 'pf')" class="space-y-3"><div class="flex gap-2"><label class="flex-1 cursor-pointer bg-slate-950 p-2 rounded text-center border border-slate-800"><input type="radio" name="pf-tipo" value="entrada" checked class="hidden">Ganho</label><label class="flex-1 cursor-pointer bg-slate-950 p-2 rounded text-center border border-slate-800"><input type="radio" name="pf-tipo" value="saida" class="hidden">Gasto</label></div><input type="text" id="pf-desc" placeholder="Descrição" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white"><input type="number" id="pf-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white"><div class="grid grid-cols-2 gap-2"><select id="pf-modalidade" class="p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm" onchange="toggleModalidade('pf')"><option value="unico">Único</option><option value="recorrente">Recorrente</option><option value="parcelado">Parcelado</option></select><input type="date" id="pf-data" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm"><div id="pf-parcelas-container" class="hidden"><input type="number" id="pf-parcelas" placeholder="Qtd Meses/Parcelas" class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white mt-2"></div><button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg font-bold">Salvar</button></form></div></div>
+                <!-- VIEW PESSOAL -->
+                <div id="view-pessoal" class="view-section hidden fade-in p-6">
+                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500"><p class="text-sm text-blue-400 font-bold">Entradas</p><h3 class="text-2xl font-bold text-blue-300" id="pf-receita">R$ 0,00</h3></div>
+                        <div class="bg-slate-900 p-4 rounded-xl border-l-4 border-orange-500"><p class="text-sm text-orange-400 font-bold">Saídas</p><h3 class="text-2xl font-bold text-orange-300" id="pf-despesa">R$ 0,00</h3></div>
+                        <div class="bg-slate-900 p-4 rounded-xl border-l-4 border-slate-500"><p class="text-sm text-slate-400 font-bold">Saldo</p><h3 class="text-2xl font-bold text-white" id="pf-saldo">R$ 0,00</h3></div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-slate-900 p-4 rounded-xl border border-slate-800"><div class="h-full overflow-y-auto max-h-96"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pf" class="divide-y divide-slate-800"></tbody></table></div></div>
+                        <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 h-fit">
+                            <h3 class="font-bold text-lg mb-4 text-white">Movimentação Pessoal</h3>
+                            <form onsubmit="adicionarTransacao(event, 'pf')" class="space-y-3">
+                                <div class="flex gap-2"><label class="flex-1 cursor-pointer"><input type="radio" name="pf-tipo" value="entrada" checked class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-700 peer-checked:bg-blue-900/30 peer-checked:text-blue-400 text-slate-400 text-sm font-bold">Ganho</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="pf-tipo" value="saida" class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-700 peer-checked:bg-orange-900/30 peer-checked:text-orange-400 text-slate-400 text-sm font-bold">Gasto</div></label></div>
+                                <input type="text" id="pf-desc" placeholder="Descrição" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                                <input type="number" id="pf-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                                <div class="grid grid-cols-2 gap-2"><select id="pf-modalidade" class="p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm" onchange="toggleModalidade('pf')"><option value="unico">Único</option><option value="recorrente">Recorrente</option><option value="parcelado">Parcelado</option></select><input type="date" id="pf-data" required class="p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm"></div>
+                                <div id="pf-parcelas-container" class="hidden"><input type="number" id="pf-parcelas" placeholder="Qtd Meses/Parcelas" class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white mt-2"></div>
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg font-bold">Salvar</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- SCRIPTS -->
-                <div id="view-scripts" class="view-section hidden fade-in"><h3 class="font-bold text-lg text-slate-400 mb-4">Scripts de Vendas</h3><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="lg:col-span-1 bg-slate-900 p-5 rounded-xl border border-slate-800"><form onsubmit="adicionarScript(event)" class="space-y-4"><input type="text" id="script-titulo" placeholder="Título" class="w-full p-2.5 bg-slate-950 border-slate-800 rounded text-white"><textarea id="script-texto" rows="5" placeholder="Texto..." class="w-full p-2.5 bg-slate-950 border-slate-800 rounded text-white"></textarea><button type="button" onclick="gerarScriptIA()" class="text-xs text-purple-400 mb-2 block">✨ Gerar com IA</button><button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded">Salvar</button></form></div><div id="lista-scripts" class="lg:col-span-2 space-y-4"></div></div></div>
-                
-                <!-- NOTAS -->
-                <div id="view-notas" class="view-section hidden fade-in"><h3 class="font-bold text-lg text-slate-400 mb-4">Notas Fiscais</h3><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="lg:col-span-1 bg-slate-900 p-5 rounded-xl border border-slate-800"><form onsubmit="adicionarNota(event)" class="space-y-3"><input id="nota-numero" placeholder="Nº" class="w-full p-2.5 bg-slate-950 border-slate-800 rounded text-white"><input id="nota-cliente" placeholder="Cliente" class="w-full p-2.5 bg-slate-950 border-slate-800 rounded text-white"><input id="nota-valor" placeholder="Valor" class="w-full p-2.5 bg-slate-950 border-slate-800 rounded text-white"><input type="date" id="nota-data" class="w-full p-2.5 bg-slate-950 border-slate-800 rounded text-white"><input id="nota-link" placeholder="Link do Drive" class="w-full p-2.5 bg-slate-950 border-slate-800 rounded text-white"><button class="w-full bg-indigo-600 py-2 rounded text-white font-bold">Salvar</button></form></div><div id="lista-notas" class="lg:col-span-2 space-y-3"></div></div></div>
+                <!-- VIEW SCRIPTS -->
+                <div id="view-scripts" class="view-section hidden fade-in p-6">
+                    <h3 class="font-bold text-lg text-slate-400 mb-6 flex items-center gap-2"><i class="ph-fill ph-chat-text text-indigo-500"></i> Scripts de Vendas</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-1"><div class="bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-800 sticky top-4"><h4 class="font-bold text-base mb-4 text-white">Adicionar Novo Script</h4><form onsubmit="adicionarScript(event)" class="space-y-4"><div><label class="block text-xs font-bold text-slate-400 mb-1 uppercase">Título / Assunto</label><input type="text" id="script-titulo" placeholder="Ex: Apresentação Fria LinkedIn" required class="w-full p-2.5 border border-slate-700 rounded-lg bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></div><div><label class="block text-xs font-bold text-slate-400 mb-1 uppercase">Mensagem</label><div class="flex justify-between items-center mb-1"><button type="button" id="btn-gerar-script" onclick="gerarScriptIA()" class="text-xs bg-purple-900/30 text-purple-400 px-2 py-1 rounded flex items-center gap-1 font-bold hover:bg-purple-900/50 transition-colors"><i class="ph-bold ph-sparkle"></i> Gerar com IA</button></div><textarea id="script-texto" rows="6" placeholder="Olá {nome}, vi seu perfil e..." required class="w-full p-2.5 border border-slate-700 rounded-lg bg-slate-950 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></textarea></div><button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-600/20 flex justify-center items-center gap-2"><i class="ph-bold ph-plus-circle"></i> Salvar Script</button></form></div></div>
+                        <div class="lg:col-span-2"><div id="lista-scripts" class="space-y-4 grid grid-cols-1 gap-4"><div class="text-center text-slate-500 py-10">Carregando scripts...</div></div></div>
+                    </div>
+                </div>
 
-                <!-- OUTROS -->
-                <div id="view-sem_retorno" class="view-section hidden fade-in"><h3 class="text-white mb-4">Sem Retorno</h3><div id="lista-sem-retorno" class="space-y-2"></div></div>
-                <div id="view-ativos" class="view-section hidden fade-in"><h3 class="text-white mb-4">Ativos</h3><div id="lista-ativos-grid" class="grid grid-cols-2 gap-4"></div></div>
-                <div id="view-contratos" class="view-section hidden fade-in"><h3 class="text-white mb-4">Contratos</h3><div id="lista-contratos" class="grid grid-cols-2 gap-4"></div></div>
-                <div id="view-inativos" class="view-section hidden fade-in"><h3 class="text-white mb-4">Inativos</h3><div id="lista-inativos" class="space-y-2"></div></div>
-                <div id="view-perfil" class="view-section hidden fade-in"><div class="bg-slate-900 p-6 rounded max-w-xl mx-auto"><h3 class="text-white mb-4">Perfil</h3><form onsubmit="salvarPerfil(event)" class="space-y-4"><input id="prof-company" placeholder="Empresa" class="w-full p-3 bg-slate-950 rounded text-white"><input id="prof-name" placeholder="Nome" class="w-full p-3 bg-slate-950 rounded text-white"><input id="prof-email" placeholder="Email" class="w-full p-3 bg-slate-950 rounded text-white"><button class="bg-blue-600 px-6 py-2 rounded text-white font-bold">Salvar</button></form></div></div>
+                <!-- VIEW NOTAS -->
+                <div id="view-notas" class="view-section hidden fade-in p-6">
+                    <h3 class="font-bold text-lg text-slate-400 mb-6 flex items-center gap-2"><i class="ph-fill ph-receipt text-indigo-500"></i> Gestão de Notas Fiscais</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-1"><div class="bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-800 sticky top-4"><h4 class="font-bold text-base mb-4 text-white">Registrar Nota</h4><form onsubmit="adicionarNota(event)" class="space-y-4">
+                            <input type="text" id="nota-numero" placeholder="Número" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded text-white">
+                            <input type="text" id="nota-cliente" placeholder="Cliente" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded text-white">
+                            <input type="number" id="nota-valor" placeholder="Valor" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded text-white">
+                            <input type="date" id="nota-data" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded text-white">
+                            <input type="url" id="nota-link" placeholder="Link do Drive" class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded text-white">
+                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded font-bold">Salvar</button>
+                        </form></div></div>
+                        <div class="lg:col-span-2"><div id="lista-notas" class="space-y-3"><div class="text-center text-slate-500 py-10">Carregando notas...</div></div></div>
+                    </div>
+                </div>
+                
+                <!-- OUTRAS VIEWS (SEM RETORNO, ATIVOS, CONTRATOS, INATIVOS) -->
+                 <div id="view-sem_retorno" class="view-section hidden fade-in p-6">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2"><i class="ph-fill ph-clock text-amber-500"></i> Aguardando Retorno</h3>
+                    <div id="lista-sem-retorno" class="space-y-3"></div>
+                 </div>
+                 
+                 <div id="view-ativos" class="view-section hidden fade-in p-6">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2"><i class="ph-fill ph-check-circle text-emerald-500"></i> Carteira de Clientes Ativos</h3>
+                    <div id="lista-ativos-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                 </div>
+                 
+                 <div id="view-contratos" class="view-section hidden fade-in p-6">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2"><i class="ph-fill ph-file-text text-purple-500"></i> Gestão de Contratos</h3>
+                    <div id="lista-contratos" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                 </div>
+                 
+                 <div id="view-inativos" class="view-section hidden fade-in p-6">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2"><i class="ph-fill ph-archive text-slate-500"></i> Inativos</h3>
+                    <div id="lista-inativos" class="space-y-3"></div>
+                 </div>
+                 
+                 <!-- VIEW PERFIL -->
+                 <div id="view-perfil" class="view-section hidden fade-in p-6">
+                    <div class="max-w-2xl mx-auto bg-slate-900 p-8 rounded-2xl border border-slate-800 mt-10">
+                        <h3 class="text-xl font-bold text-white mb-6">Perfil da Empresa</h3>
+                        <form onsubmit="salvarPerfil(event)" class="space-y-4">
+                            <div><label class="block text-xs font-bold text-slate-500 mb-1 uppercase">Nome da Empresa</label><input type="text" id="prof-company" class="w-full p-3 bg-slate-950 border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 mb-1 uppercase">Seu Nome</label><input type="text" id="prof-name" class="w-full p-3 bg-slate-950 border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 mb-1 uppercase">Email</label><input type="text" id="prof-email" class="w-full p-3 bg-slate-950 border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"></div>
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded font-bold transition-colors">Salvar Alterações</button>
+                        </form>
+                    </div>
+                 </div>
+
             </main>
+            
+            <!-- RODAPÉ FIXO -->
+            <footer class="text-center py-4 px-4 text-slate-400 border-t border-slate-800 bg-slate-900 shrink-0 z-30 text-[10px]">
+                <div class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6">
+                    <p>&copy; <script>document.write(new Date().getFullYear())</script> Gestor Pro.</p>
+                    <p class="uppercase tracking-wide font-bold opacity-60">🚫 Proibido o repasse/revenda</p>
+                </div>
+            </footer>
         </div>
     </div>
 
-    <!-- MODALS -->
-    <div id="modal-config" class="hidden fixed inset-0 z-50 bg-slate-950/90 flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-900 p-6 rounded-xl border border-slate-700 w-full max-w-md"><h3 class="text-white mb-4">Configurar IA</h3><input type="password" id="input-api-key" placeholder="API Key" class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white mb-4"><div class="flex justify-end gap-2"><button onclick="document.getElementById('modal-config').classList.add('hidden')" class="text-slate-400">Cancelar</button><button onclick="salvarConfig()" class="bg-blue-600 px-4 py-2 rounded text-white">Salvar</button></div></div></div>
-    <div id="modal-ai" class="hidden fixed inset-0 z-[200] bg-slate-950/90 flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-slate-900 p-6 rounded-2xl w-full max-w-2xl"><h3 class="text-white mb-4">IA</h3><textarea id="ai-content" class="w-full h-64 bg-slate-950 text-slate-300 p-4 rounded mb-4"></textarea><button onclick="fecharAI()" class="bg-blue-600 px-4 py-2 rounded text-white">Fechar</button></div></div>
+    <!-- MODAL DE CONFIGURAÇÃO (API KEY) -->
+    <div id="modal-config" class="hidden fixed inset-0 z-[200] bg-slate-950/90 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-900 p-6 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-md">
+            <h3 class="text-xl font-bold text-white mb-4">Configurações</h3>
+            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Gemini API Key (IA)</label>
+            <input type="password" id="input-api-key" placeholder="Cole sua chave aqui..." class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white mb-4 focus:outline-none focus:border-blue-500">
+            <div class="flex justify-end gap-2">
+                <button onclick="document.getElementById('modal-config').classList.add('hidden')" class="px-4 py-2 text-slate-400 hover:text-white">Cancelar</button>
+                <button onclick="salvarConfig()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE IA -->
+    <div id="modal-ai" class="hidden fixed inset-0 z-[200] bg-slate-950/90 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-900 p-6 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-2xl flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="ph-fill ph-sparkle text-purple-500"></i> Assistente IA</h3><button onclick="fecharAI()" class="text-slate-400 hover:text-white"><i class="ph-bold ph-x text-xl"></i></button></div>
+            <div id="ai-loading" class="hidden flex flex-col items-center justify-center py-12"><i class="ph-bold ph-spinner animate-spin text-4xl text-blue-500 mb-3"></i><p class="text-slate-500 animate-pulse">Gerando resposta...</p></div>
+            <div id="ai-content" class="prose prose-invert max-w-none overflow-y-auto text-sm text-slate-300 bg-slate-950 p-4 rounded-xl border border-slate-800 flex-1"></div>
+            <div class="mt-4 flex justify-end gap-2"><button onclick="copiarTextoAI()" class="px-4 py-2 bg-slate-800 text-white rounded-lg font-bold flex items-center gap-2"><i class="ph-bold ph-copy"></i> Copiar</button><button onclick="fecharAI()" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold">Fechar</button></div>
+        </div>
+    </div>
+    
+    <!-- MODAL DE EDIÇÃO -->
     <div id="custom-input-box-container"></div>
 
     <!-- FIREBASE MODULE TYPE -->
@@ -192,7 +379,7 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // SUAS CHAVES DO FIREBASE
+        // CONFIGURAÇÃO DO FIREBASE (SUAS CHAVES REAIS)
         const firebaseConfig = {
             apiKey: "AIzaSyDSdQylysTQm4JyBGS6GPGO6MhI0rh6rMo",
             authDomain: "gestorpro-saas.firebaseapp.com",
@@ -274,23 +461,29 @@
             signOut(auth);
         };
 
-        // Firestore Listeners
+        // Firestore Listeners (Recupera dados em tempo real)
         function iniciarListeners(uid) {
+            // Leads
             unsubLeads = onSnapshot(query(collection(db, "leads"), where("userId", "==", uid)), (snap) => {
                 const leads = []; snap.forEach(d => leads.push({id:d.id, ...d.data()})); renderLeads(leads);
             });
+            // Financeiro PJ
             unsubPJ = onSnapshot(query(collection(db, "financeiro_pj"), where("userId", "==", uid)), (snap) => {
                 const t = []; snap.forEach(d => t.push({id:d.id, ...d.data()})); cachePJ = t; renderFinanceiro(t, 'pj'); calcularSaudeFinanceira();
             });
+            // Financeiro PF
             unsubPF = onSnapshot(query(collection(db, "financeiro_pf"), where("userId", "==", uid)), (snap) => {
                 const t = []; snap.forEach(d => t.push({id:d.id, ...d.data()})); renderFinanceiro(t, 'pf');
             });
+            // Scripts
             unsubScripts = onSnapshot(query(collection(db, "scripts"), where("userId", "==", uid)), (snap) => {
                 const s = []; snap.forEach(d => s.push({id:d.id, ...d.data()})); renderScripts(s);
             });
+            // Notas
             unsubNotas = onSnapshot(query(collection(db, "notas"), where("userId", "==", uid)), (snap) => {
                 const n = []; snap.forEach(d => n.push({id:d.id, ...d.data()})); renderNotas(n);
             });
+            // Perfil
             getDoc(doc(db, "profiles", uid)).then(docSnap => {
                 if(docSnap.exists()) {
                     const data = docSnap.data();
@@ -301,7 +494,7 @@
             });
         }
 
-        // Funções de Dados
+        // Funções de Dados (CRUD)
         window.adicionarLead = async (e) => {
             e.preventDefault();
             await addDoc(collection(db, "leads"), { userId: currentUser.uid, nome: document.getElementById('lead-nome').value, empresa: document.getElementById('lead-empresa').value, doc: document.getElementById('lead-doc').value, social: document.getElementById('lead-social').value, valor: parseFloat(document.getElementById('lead-valor').value)||0, status: 'negociacao', createdAt: new Date() });
@@ -312,6 +505,7 @@
             await updateDoc(doc(db, "leads", id), { status: novoStatus });
             if(novoStatus === 'ganho') await addDoc(collection(db, "financeiro_pj"), { userId: currentUser.uid, op: 'entrada', desc: `Fechamento: ${nome}`, valor: valor, data: new Date().toISOString().split('T')[0], leadId: id });
             
+            // Remove do financeiro se deixar de ser ganho
             if(novoStatus !== 'ganho') {
                  const q = query(collection(db, "financeiro_pj"), where("leadId", "==", id));
                  const snap = await getDocs(q);
@@ -378,46 +572,8 @@
             if(val === 'unico') container.classList.add('hidden');
             else container.classList.remove('hidden');
         };
-        
-        // Edição de Valor Lead
-        window.editarValorLead = (id) => {
-             getDoc(doc(db, "leads", id)).then(snap => {
-                 if(snap.exists()) {
-                     const l = snap.data();
-                     const box = document.createElement('div');
-                     box.id = 'custom-input-box';
-                     box.className = 'fixed inset-0 z-[300] bg-slate-900/90 flex items-center justify-center p-4 backdrop-blur-sm';
-                     box.innerHTML = `
-                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
-                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4">Editar Lead</h3>
-                            <div class="space-y-3">
-                                <input type="text" id="edit-nome" value="${l.nome}" class="w-full p-2.5 border rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white">
-                                <input type="number" id="edit-valor" value="${l.valor}" class="w-full p-2.5 border rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white">
-                            </div>
-                            <div class="flex gap-2 mt-6">
-                                <button onclick="document.getElementById('custom-input-box').remove()" class="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl">Cancelar</button>
-                                <button onclick="confirmarEdicaoValor('${id}')" class="flex-1 py-2.5 bg-blue-600 text-white rounded-xl">Salvar</button>
-                            </div>
-                        </div>`;
-                     document.body.appendChild(box);
-                 }
-             });
-        };
-        
-        window.confirmarEdicaoValor = async (id) => {
-            const nome = document.getElementById('edit-nome').value;
-            const valor = parseFloat(document.getElementById('edit-valor').value);
-            await updateDoc(doc(db, "leads", id), { nome, valor });
-            
-            const q = query(collection(db, "financeiro_pj"), where("leadId", "==", id));
-            const snap = await getDocs(q);
-            snap.forEach(d => updateDoc(d.ref, { valor, desc: `Fechamento: ${nome}` }));
-            
-            document.getElementById('custom-input-box').remove();
-            mostrarToast('Atualizado!');
-        };
 
-        // Renderização
+        // Renderização (Listas e Visual)
         function renderLeads(leads) {
             const list = document.getElementById('lista-leads'); list.innerHTML = '';
             const listSem = document.getElementById('lista-sem-retorno'); if(listSem) listSem.innerHTML = '';
@@ -433,7 +589,7 @@
                 const card = `<div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center shadow-sm mb-2"><div><div class="font-bold text-white">${l.nome}</div><div class="text-sm text-slate-400">${l.empresa} - ${formatMoney(l.valor)}</div></div><div class="flex gap-2"><button onclick="alterarStatusLead('${l.id}','ganho',${l.valor},'${l.nome}')" class="text-emerald-500 p-2"><i class="ph-bold ph-check"></i></button><button onclick="alterarStatusLead('${l.id}','sem_retorno',0,'')" class="text-amber-500 p-2"><i class="ph-bold ph-clock"></i></button><button onclick="editarValorLead('${l.id}')" class="text-blue-500 p-2"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="excluirItem('leads','${l.id}')" class="text-slate-500 p-2"><i class="ph-bold ph-trash"></i></button></div></div>`;
                 
                 if(l.status === 'negociacao') list.innerHTML += card;
-                if(l.status === 'sem_retorno' && listSem) listSem.innerHTML += card.replace('text-amber-500','hidden'); 
+                if(l.status === 'sem_retorno' && listSem) listSem.innerHTML += card.replace('text-amber-500','hidden'); // Hide unneeded buttons
                 if(l.status === 'ganho' && listAti) listAti.innerHTML += `<div class="bg-slate-900 p-5 rounded-xl border border-emerald-900/30"><div class="font-bold text-white">${l.nome}</div><div class="text-emerald-400 font-bold">${formatMoney(l.valor)}</div><button onclick="alterarStatusLead('${l.id}','inativo',0,'')" class="text-xs mt-2 bg-slate-800 px-2 py-1 rounded text-slate-400 hover:text-white">Desativar</button></div>`;
                 if(l.status === 'ganho' && listCon) listCon.innerHTML += `<div class="bg-slate-900 p-5 rounded-xl border border-slate-800"><div>${l.nome}</div><div class="text-xs text-slate-500">Contrato Ativo</div><div class="mt-2 text-emerald-400 font-bold">${formatMoney(l.valor)}</div></div>`;
                 if((l.status === 'perdido' || l.status === 'inativo') && listIna) listIna.innerHTML += `<div class="bg-slate-900 p-4 rounded border border-slate-800 opacity-50 flex justify-between"><div>${l.nome}</div><button onclick="excluirItem('leads','${l.id}')"><i class="ph-bold ph-trash"></i></button></div>`;
@@ -548,7 +704,48 @@
         
         window.copiarTextoAI = () => { navigator.clipboard.writeText(document.getElementById('ai-content').innerText); mostrarToast('Copiado!'); }
         window.fecharAI = () => document.getElementById('modal-ai').classList.add('hidden');
-        window.togglePrivacy = () => { showValues = !showValues; renderizar(); };
+        window.togglePrivacy = () => { /* Implementar toggle visual se necessário */ };
+        
+        // Edição de Valor Lead (Faltando na versão anterior)
+        window.editarValorLead = (id) => {
+             // Recupera do HTML atual (não temos DB local sync completo, pegamos do DOM ou cache se necessário, mas idealmente do Firestore)
+             // Como não temos cache global de leads aqui, vamos buscar o doc
+             getDoc(doc(db, "leads", id)).then(snap => {
+                 if(snap.exists()) {
+                     const l = snap.data();
+                     const box = document.createElement('div');
+                     box.id = 'custom-input-box';
+                     box.className = 'fixed inset-0 z-[300] bg-slate-900/90 flex items-center justify-center p-4 backdrop-blur-sm';
+                     box.innerHTML = `
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
+                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4">Editar Lead</h3>
+                            <div class="space-y-3">
+                                <input type="text" id="edit-nome" value="${l.nome}" class="w-full p-2.5 border rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white">
+                                <input type="number" id="edit-valor" value="${l.valor}" class="w-full p-2.5 border rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white">
+                            </div>
+                            <div class="flex gap-2 mt-6">
+                                <button onclick="document.getElementById('custom-input-box').remove()" class="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl">Cancelar</button>
+                                <button onclick="confirmarEdicaoValor('${id}')" class="flex-1 py-2.5 bg-blue-600 text-white rounded-xl">Salvar</button>
+                            </div>
+                        </div>`;
+                     document.body.appendChild(box);
+                 }
+             });
+        };
+        
+        window.confirmarEdicaoValor = async (id) => {
+            const nome = document.getElementById('edit-nome').value;
+            const valor = parseFloat(document.getElementById('edit-valor').value);
+            await updateDoc(doc(db, "leads", id), { nome, valor });
+            
+            // Atualiza financeiro se existir vinculo
+            const q = query(collection(db, "financeiro_pj"), where("leadId", "==", id));
+            const snap = await getDocs(q);
+            snap.forEach(d => updateDoc(d.ref, { valor, desc: `Fechamento: ${nome}` }));
+            
+            document.getElementById('custom-input-box').remove();
+            mostrarToast('Atualizado!');
+        };
     </script>
 </body>
 </html>
