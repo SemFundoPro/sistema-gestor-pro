@@ -1,289 +1,1492 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Gestor Pro</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-    tailwind.config = { darkMode: 'class', theme: { extend: { colors: { slate: { 850: '#172033', 950: '#020617' } }, fontFamily: { sans: ['Segoe UI', 'Roboto', 'sans-serif'] } } } }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script><script src="https://unpkg.com/@phosphor-icons/web"></script><script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script>
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.onkeydown = function(e) { if(e.keyCode==123 || (e.ctrlKey && e.shiftKey && ['I','C','J'].includes(String.fromCharCode(e.keyCode))) || (e.ctrlKey && e.keyCode=='U'.charCodeAt(0))) return false; };
-    window.alert = function(msg) { if(!document.body) return; const id='custom-alert'; if(document.getElementById(id)) document.getElementById(id).remove(); const b=document.createElement('div'); b.id=id; b.className='fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm fade-in'; b.innerHTML=`<div class="bg-slate-900 p-6 rounded-2xl shadow-2xl max-w-sm w-full border border-slate-700 animate-in zoom-in-95"><div class="mb-4 text-center"><div class="bg-blue-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-blue-400 mb-3 border border-blue-800"><i class="ph-bold ph-info text-2xl"></i></div><h3 class="text-xl font-bold text-white">Aviso</h3></div><p class="text-slate-300 mb-6 text-center text-sm">${msg}</p><button onclick="document.getElementById('${id}').remove()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold">OK</button></div>`; document.body.appendChild(b); };
-</script>
-<style>
-    body{font-family:'Segoe UI',sans-serif;user-select:none;overflow:hidden;background-color:#020617;color:white}input,textarea,select{user-select:text;cursor:text}
-    .fade-in{animation:fadeIn .4s cubic-bezier(.4,0,.2,1)}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#334155;border-radius:10px}::-webkit-scrollbar-thumb:hover{background:#475569}
-    .blur-content{filter:blur(12px);pointer-events:none;transition:filter .5s;opacity:.3}
-    #sidebar{transition:margin-left .3s cubic-bezier(.4,0,.2,1),transform .3s}.sidebar-closed{margin-left:-18rem}@media(max-width:1280px){.sidebar-closed{margin-left:0;transform:translateX(-100%)}.sidebar-open{transform:translateX(0)}}
-    .health-bar-fill{transition:width 1.2s cubic-bezier(.4,0,.2,1),background-color .5s}
-    .animate-blob{animation:float-blob 10s infinite alternate cubic-bezier(.4,0,.2,1)}@keyframes float-blob{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-50px) scale(1.1)}66%{transform:translate(-20px,20px) scale(.9)}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor Pro - Cliente (Híbrido)</title>
+    
+    <!-- === BLINDAGEM MÁXIMA (Nível Militar) === -->
+    <script>
+        // 1. Bloqueio de Clique Direito
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // 2. Bloqueio de Teclas de Atalho
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123) { return false; } // F12
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.keyCode == 'P'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.keyCode == 'H'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.keyCode == 'A'.charCodeAt(0)) { return false; } 
+            if (e.ctrlKey && e.keyCode == 'F'.charCodeAt(0)) { return false; } 
+        };
+
+        // 3. Sobrescreve Alert Nativo
+        window.alert = function(msg) {
+            if (!document.body) {
+                window.addEventListener('DOMContentLoaded', function() { window.alert(msg); });
+                return;
+            }
+            const existing = document.getElementById('custom-alert-box');
+            if(existing) existing.remove();
+
+            const box = document.createElement('div');
+            box.id = 'custom-alert-box';
+            box.className = 'fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm fade-in';
+            box.innerHTML = `
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl max-w-sm w-full border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
+                    <div class="mb-4 text-center">
+                        <div class="bg-blue-100 dark:bg-blue-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-blue-600 dark:text-blue-400 mb-3">
+                            <i class="ph-bold ph-info text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 dark:text-white">Aviso do Sistema</h3>
+                    </div>
+                    <p class="text-slate-600 dark:text-slate-300 mb-6 text-center text-sm leading-relaxed">${msg}</p>
+                    <button onclick="document.getElementById('custom-alert-box').remove()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all">Entendido</button>
+                </div>
+            `;
+            document.body.appendChild(box);
+        };
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { slate: { 850: '#172033', 950: '#020617' } } } }
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; -webkit-user-select: none; user-select: none; overflow: hidden; }
+        input, textarea { user-select: text; cursor: text; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .blur-content { filter: blur(10px); pointer-events: none; user-select: none; overflow: hidden; height: 100vh; }
+        .profile-img { object-fit: cover; }
+        
+        /* Sidebar transition */
+        #sidebar { transition: margin-left 0.3s ease-in-out, transform 0.3s ease-in-out; }
+        .sidebar-closed { margin-left: -18rem; } 
+        @media (max-width: 1280px) {
+            .sidebar-closed { margin-left: 0; transform: translateX(-100%); }
+            .sidebar-open { transform: translateX(0); }
+        }
+        
+        /* Health Meter Animation */
+        .health-bar-container { position: relative; overflow: hidden; }
+        .health-bar-fill { transition: width 1s ease-in-out, background-color 0.5s ease; }
+
+        /* Animação do Background de Login */
+        @keyframes float-blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob {
+            animation: float-blob 10s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+        
+        /* Loading Overlay for Firebase */
+        #firebase-loading { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; color: white; flex-direction: column; gap: 10px; backdrop-filter: blur(5px); }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 h-screen w-screen overflow-hidden flex">
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 h-screen w-screen overflow-hidden flex" id="body-container">
 
-<!-- LOGIN -->
-<div id="login-overlay" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-4 transition-opacity duration-500">
-    <canvas id="login-bg-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
-    <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-950/90 pointer-events-none z-0"></div>
-    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-[100px] opacity-40 animate-blob"></div>
-        <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-blue-600 rounded-full mix-blend-screen filter blur-[100px] opacity-40 animate-blob animation-delay-2000"></div>
-        <div class="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-screen filter blur-[100px] opacity-40 animate-blob animation-delay-4000"></div>
+    <!-- LOADING FIREBASE -->
+    <div id="firebase-loading">
+        <i class="ph-bold ph-spinner animate-spin text-4xl text-blue-500"></i>
+        <span class="text-sm font-bold tracking-wider animate-pulse">CONECTANDO AO SERVIDOR...</span>
     </div>
-    <div class="relative w-full max-w-sm bg-white/5 dark:bg-slate-900/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/10 p-10 text-center animate-in zoom-in-95 duration-500 ring-1 ring-white/10 z-10">
-        <div class="mb-8 flex justify-center"><div class="relative bg-slate-950 p-5 rounded-2xl border border-slate-800 shadow-xl"><i class="ph-fill ph-brain text-4xl text-transparent bg-clip-text bg-gradient-to-tr from-blue-400 to-purple-400"></i></div></div>
-        <h2 class="text-3xl font-bold text-white mb-2">Gestor Pro</h2>
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-widest mb-8 opacity-80">Acesso Cloud &bull; Seguro</p>
-        <form id="login-form" class="space-y-5 text-left">
-            <input type="email" id="login-email" placeholder="E-mail" class="w-full py-4 px-4 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 font-medium backdrop-blur-sm" required>
-            <input type="password" id="login-pass" placeholder="Senha" class="w-full py-4 px-4 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 font-medium backdrop-blur-sm" required>
-            <button type="submit" id="login-btn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-2xl font-bold text-lg shadow-lg transition-all active:scale-[0.98]">Entrar</button>
-        </form>
-        <p id="login-msg" class="mt-6 text-xs text-rose-400 hidden text-center bg-rose-500/10 p-2 rounded border border-rose-500/20"></p>
+
+    <!-- 1. TELA DE ATIVAÇÃO -->
+    <div id="license-overlay" class="fixed inset-0 z-[200] bg-slate-900 flex items-center justify-center p-4 hidden">
+        <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-700 p-8 text-center animate-in zoom-in-95 duration-300">
+            <div class="mb-6 flex justify-center"><div class="bg-indigo-600 p-4 rounded-full text-white shadow-lg shadow-indigo-600/30"><i class="ph-bold ph-seal-check text-4xl"></i></div></div>
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Ativação do Produto</h2>
+            <p class="text-slate-500 dark:text-slate-400 mb-6 text-sm">Insira os dados fornecidos pelo administrador.</p>
+            <form onsubmit="handleActivation(event)" class="space-y-4 text-left">
+                <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Nome / Empresa</label><input type="text" id="lic-name" placeholder="Ex: Cliente Ltda" class="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all uppercase"></div>
+                <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Chave de Acesso</label><input type="text" id="lic-key" placeholder="XXXX-XXXX-XXXX-XXXX" class="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono text-center uppercase tracking-widest"></div>
+                <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-indigo-600/20 transition-all transform active:scale-95">Validar Licença</button>
+            </form>
+            <p class="mt-6 text-xs text-slate-500">Este software é protegido contra cópia não autorizada.</p>
+            <button onclick="emergencyReset()" class="text-[10px] text-slate-700 mt-4 opacity-50 hover:opacity-100">Resetar Dados Locais</button>
+        </div>
     </div>
-</div>
 
-<!-- APP -->
-<div id="app-content" class="flex flex-row h-full w-full blur-content transition-all duration-500 overflow-hidden absolute inset-0 opacity-0 pointer-events-none">
-    <aside id="sidebar" class="absolute xl:relative z-50 w-72 h-full bg-slate-900 border-r border-slate-800 flex flex-col shadow-2xl xl:shadow-none flex-shrink-0 transform transition-transform duration-300 xl:translate-x-0 -translate-x-full">
-        <div class="p-6 border-b border-slate-800 flex items-center gap-3 shrink-0">
-            <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-lg"><i class="ph-bold ph-trend-up text-xl"></i></div>
-            <div class="overflow-hidden"><h1 class="text-lg font-bold truncate text-white">Gestor Pro</h1><p id="user-email-display" class="text-[10px] text-slate-400 font-medium mt-1 uppercase truncate">...</p></div>
-            <button onclick="toggleSidebar()" class="xl:hidden ml-auto text-slate-400 hover:text-white"><i class="ph-bold ph-x text-xl"></i></button>
+    <!-- 2. TELA DE LOGIN -->
+    <div id="login-overlay" class="hidden fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-4 transition-opacity duration-500 overflow-hidden">
+        <canvas id="login-bg-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-950/80 pointer-events-none z-0"></div>
+        <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-[100px] opacity-50 animate-blob"></div>
+            <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-blue-600 rounded-full mix-blend-screen filter blur-[100px] opacity-50 animate-blob animation-delay-2000"></div>
+            <div class="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-screen filter blur-[100px] opacity-50 animate-blob animation-delay-4000"></div>
         </div>
-        <nav class="flex-1 overflow-y-auto p-4 space-y-1.5 custom-scrollbar">
-            <button onclick="mudarAba('crm')" id="btn-crm" class="tab-btn w-full active px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-3 bg-blue-600 text-white shadow-md text-left"><i class="ph-bold ph-users text-lg"></i> Prospecção</button>
-            <button onclick="mudarAba('scripts')" id="btn-scripts" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-chat-text text-lg"></i> Scripts</button>
-            <button onclick="mudarAba('sem_retorno')" id="btn-sem_retorno" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-clock text-lg"></i> Sem Retorno</button>
-            <button onclick="mudarAba('ativos')" id="btn-ativos" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-check-circle text-lg"></i> Ativos</button>
-            <button onclick="mudarAba('contratos')" id="btn-contratos" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-file-text text-lg"></i> Contratos</button>
-            <button onclick="mudarAba('notas')" id="btn-notas" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-receipt text-lg"></i> Notas</button>
-            <button onclick="mudarAba('inativos')" id="btn-inativos" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-user-minus text-lg"></i> Inativos</button>
-            <div class="border-t border-slate-800 my-4 mx-3"></div>
-            <button onclick="mudarAba('financeiro')" id="btn-financeiro" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-briefcase text-lg"></i> Empresa</button>
-            <button onclick="mudarAba('pessoal')" id="btn-pessoal" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-house text-lg"></i> Pessoal</button>
-            <div class="border-t border-slate-800 my-4 mx-3"></div>
-            <button onclick="logout()" class="w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-rose-400 hover:bg-rose-900/20 flex items-center gap-3 text-left"><i class="ph-bold ph-sign-out text-lg"></i> Sair</button>
-        </nav>
-        <div class="p-4 border-t border-slate-800 bg-slate-900/50 shrink-0 flex justify-between gap-2">
-            <button onclick="mudarAba('perfil')" class="flex-1 p-2.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors"><i class="ph-bold ph-user-gear text-lg"></i></button>
-            <button onclick="abrirConfig()" class="flex-1 p-2.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors"><i class="ph-bold ph-gear text-lg"></i></button>
-            <button class="flex-1 p-2.5 rounded-lg bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 shadow-sm" title="Modo Escuro Fixo"><i class="ph-fill ph-moon text-lg"></i></button>
-            <button onclick="location.reload()" class="flex-1 p-2.5 rounded-lg bg-slate-800 text-rose-500 hover:bg-rose-900/20 hover:text-rose-400 transition-colors border border-slate-700 shadow-sm" title="Bloquear"><i class="ph-bold ph-lock-key text-lg"></i></button>
-        </div>
-    </aside>
 
-    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden xl:hidden backdrop-blur-sm transition-opacity"></div>
-
-    <div class="flex-1 flex flex-col h-full min-w-0 bg-slate-950 relative overflow-hidden">
-        <header class="xl:hidden bg-slate-900 border-b border-slate-800 shrink-0 z-30 px-4 py-3 flex items-center justify-between shadow-sm">
-            <div class="flex items-center gap-3"><button onclick="toggleSidebar()" class="p-2 -ml-2 text-slate-300 hover:bg-slate-800 rounded-lg"><i class="ph-bold ph-list text-2xl"></i></button><span class="font-bold text-lg text-white">Gestor Pro</span></div>
-            <button onclick="togglePrivacy()" id="btn-eye-mobile" class="p-2 text-slate-500 dark:text-slate-400"><i class="ph-bold ph-eye text-xl"></i></button>
-        </header>
-
-        <main class="flex-1 overflow-y-auto scroll-smooth relative p-6" id="main-scroll-area">
-            <div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-xl z-[300] font-medium transition-all duration-300 translate-y-10 opacity-0 border border-slate-700 shadow-blue-900/20"></div>
-
-            <div id="view-crm" class="view-section fade-in">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm relative overflow-hidden group"><div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="ph-fill ph-trend-up text-6xl text-blue-600"></i></div><p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Em Negociação</p><h3 class="text-2xl font-bold text-blue-400 mt-1" id="crm-potencial">R$ 0,00</h3></div>
-                    <div class="bg-slate-900 p-5 rounded-2xl border-l-4 border-emerald-600 shadow-sm border-slate-800"><p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Ativos (Receita)</p><h3 class="text-2xl font-bold text-emerald-400 mt-1" id="crm-ativos">R$ 0,00</h3></div>
-                    <div class="bg-slate-900 p-5 rounded-2xl border-l-4 border-amber-600 shadow-sm border-slate-800"><p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Sem Retorno</p><h3 class="text-2xl font-bold text-amber-400 mt-1" id="crm-sem-retorno">R$ 0,00</h3></div>
-                    <div class="bg-slate-900 p-5 rounded-2xl border-l-4 border-slate-600 shadow-sm border-slate-800"><p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Inativos</p><h3 class="text-2xl font-bold text-slate-300 mt-1" id="crm-inativos">R$ 0,00</h3></div>
+        <div class="relative w-full max-w-sm bg-white/5 dark:bg-slate-900/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/10 p-10 text-center animate-in zoom-in-95 duration-500 ring-1 ring-white/10 z-10">
+            <div class="mb-8 flex justify-center">
+                <div onclick="triggerReset()" class="relative group cursor-pointer select-none" title="Clique 5x para resetar">
+                    <div class="absolute inset-0 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-2xl blur-lg opacity-60 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div class="relative bg-slate-950 p-5 rounded-2xl border border-slate-800 shadow-xl group-hover:scale-105 transition-transform duration-300">
+                        <i class="ph-fill ph-brain text-4xl text-transparent bg-clip-text bg-gradient-to-tr from-blue-400 to-purple-400"></i>
+                    </div>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-1 bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-800 h-fit">
-                        <h3 class="font-bold text-lg mb-4 text-white">Novo Lead</h3>
-                        <form onsubmit="adicionarLead(event)" class="space-y-3">
-                            <input type="text" id="lead-nome" placeholder="Nome do Cliente" required class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                            <input type="text" id="lead-empresa" placeholder="Empresa" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                            <div class="grid grid-cols-2 gap-2"><input type="text" id="lead-doc" placeholder="CPF/CNPJ" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm"><input type="text" id="lead-social" placeholder="Social Link" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm"></div>
-                            <input type="number" id="lead-valor" placeholder="Valor (R$)" step="0.01" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold">Cadastrar</button>
+            </div>
+
+            <h2 id="login-title" class="text-3xl font-bold text-white mb-2 tracking-tight drop-shadow-md">Gestor Pro</h2>
+            
+            <div id="licensed-to" class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-8 flex justify-center gap-1">
+                <span class="hidden">Licenciado para:</span> <span>...</span>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-5 text-left">
+                <div>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="ph-bold ph-lock-key text-slate-400 group-focus-within:text-blue-400 transition-colors"></i>
+                        </div>
+                        <input type="password" id="login-pass" placeholder="Senha de Acesso" class="w-full py-4 pl-12 pr-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm">
+                        <button type="button" onclick="togglePassVisibility()" class="absolute right-4 top-4 text-slate-400 hover:text-blue-400 cursor-pointer transition-colors">
+                            <i id="eye-icon" class="ph-bold ph-eye text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="confirm-pass-container" class="hidden">
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="ph-bold ph-shield-check text-slate-400 group-focus-within:text-blue-400 transition-colors"></i>
+                        </div>
+                        <input type="password" id="login-pass-confirm" placeholder="Confirmar Senha" class="w-full py-4 pl-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm">
+                    </div>
+                </div>
+
+                <button type="submit" id="login-btn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 transition-all transform active:scale-[0.98] border border-white/10">
+                    Entrar
+                </button>
+            </form>
+            
+            <p id="login-footer" class="mt-8 text-[10px] text-slate-500 font-medium tracking-wide uppercase opacity-60">
+                Acesso Seguro &bull; Criptografado
+            </p>
+        </div>
+    </div>
+
+    <!-- ESTRUTURA PRINCIPAL -->
+    <div id="app-content" class="flex flex-row h-full w-full blur-content transition-all duration-500 overflow-hidden absolute inset-0">
+        
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="absolute xl:relative z-50 w-72 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl xl:shadow-none flex-shrink-0 transform transition-transform duration-300 xl:translate-x-0 -translate-x-full">
+            <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 shrink-0">
+                <div id="header-avatar" class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20 overflow-hidden shrink-0"><i class="ph-bold ph-trend-up text-xl"></i></div>
+                <div class="overflow-hidden"><h1 class="text-lg font-bold leading-none tracking-tight truncate text-slate-800 dark:text-white" id="header-name">Gestor Pro</h1><p id="header-license-info" class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1 uppercase tracking-wider truncate">Licenciado</p></div>
+                <button onclick="toggleSidebar()" class="xl:hidden ml-auto text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+
+            <nav class="flex-1 overflow-y-auto p-4 space-y-1.5 custom-scrollbar">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-2">Menu Principal</div>
+                <button onclick="mudarAba('crm')" id="btn-crm" class="tab-btn w-full active px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-3 bg-blue-600 text-white shadow-md text-left"><i class="ph-bold ph-users text-lg"></i> Prospecção</button>
+                <button onclick="mudarAba('scripts')" id="btn-scripts" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-chat-text text-lg"></i> Scripts</button>
+                <button onclick="mudarAba('sem_retorno')" id="btn-sem_retorno" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-clock text-lg"></i> Sem Retorno</button>
+                <button onclick="mudarAba('ativos')" id="btn-ativos" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-check-circle text-lg"></i> Ativos</button>
+                <button onclick="mudarAba('contratos')" id="btn-contratos" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-file-text text-lg"></i> Contratos</button>
+                <button onclick="mudarAba('notas')" id="btn-notas" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-receipt text-lg"></i> Notas Fiscais</button>
+                <button onclick="mudarAba('inativos')" id="btn-inativos" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-user-minus text-lg"></i> Inativos</button>
+                <div class="border-t border-slate-100 dark:border-slate-800 my-4 mx-3"></div>
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">Financeiro</div>
+                <button onclick="mudarAba('financeiro')" id="btn-financeiro" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-briefcase text-lg"></i> Empresa</button>
+                <button onclick="mudarAba('pessoal')" id="btn-pessoal" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-house text-lg"></i> Pessoal</button>
+            </nav>
+
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 shrink-0">
+                <button onclick="mudarAba('perfil')" id="btn-perfil" class="tab-btn w-full mb-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm flex items-center gap-3 border border-transparent hover:border-slate-200 dark:hover:border-slate-700"><i class="ph-bold ph-user-gear text-lg"></i> Meu Perfil</button>
+                <div class="flex items-center justify-between gap-2">
+                    <button onclick="togglePrivacy()" id="btn-eye-desktop" class="flex-1 p-2.5 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 shadow-sm" title="Ocultar Valores"><i class="ph-bold ph-eye text-lg"></i></button>
+                    <button onclick="abrirConfig()" class="flex-1 p-2.5 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 shadow-sm" title="Configurações"><i class="ph-bold ph-gear text-lg"></i></button>
+                    <button onclick="toggleDarkMode()" class="flex-1 p-2.5 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 shadow-sm" title="Tema"><i id="theme-icon-desktop" class="ph-fill ph-moon text-lg"></i></button>
+                    <button onclick="bloquearTela()" class="flex-1 p-2.5 rounded-lg bg-white dark:bg-slate-800 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/20 transition-colors border border-slate-200 dark:border-slate-700 shadow-sm" title="Bloquear"><i class="ph-bold ph-lock-key text-lg"></i></button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Overlay -->
+        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden xl:hidden backdrop-blur-sm transition-opacity"></div>
+
+        <!-- ÁREA DIREITA -->
+        <div class="flex-1 flex flex-col h-full min-w-0 bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
+            <!-- Header Mobile -->
+            <header class="xl:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0 z-30 px-4 py-3 flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-3"><button onclick="toggleSidebar()" class="p-2 -ml-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"><i class="ph-bold ph-list text-2xl"></i></button><span class="font-bold text-lg text-slate-800 dark:text-white">Gestor Pro</span></div>
+                <div class="flex gap-2">
+                    <button onclick="togglePrivacy()" id="btn-eye-mobile" class="p-2 text-slate-500 dark:text-slate-400"><i class="ph-bold ph-eye text-xl"></i></button>
+                    <button onclick="toggleDarkMode()" class="p-2 text-slate-500 dark:text-slate-400"><i class="ph-fill ph-moon text-xl"></i></button>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto scroll-smooth relative" id="main-scroll-area">
+                <div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-lg shadow-xl z-[300] font-medium transform transition-all duration-300 translate-y-10 opacity-0"></div>
+
+                <!-- VIEW CRM -->
+                <div id="view-crm" class="view-section fade-in">
+                    <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all w-full">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group"><div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="ph-fill ph-trend-up text-6xl text-blue-600"></i></div><p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Em Negociação</p><h3 class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1" id="crm-potencial">R$ 0,00</h3><div class="mt-2 text-xs font-medium text-slate-400"><span id="crm-count-negociacao">0</span> leads</div></div>
+                            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border-l-4 border-amber-400 shadow-sm dark:border-slate-800 relative overflow-hidden"><div class="flex justify-between items-start"><div><p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Sem Retorno</p><h3 class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1" id="crm-sem-retorno">R$ 0,00</h3></div><div class="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-lg text-amber-600 dark:text-amber-400"><i class="ph-bold ph-clock text-xl"></i></div></div><p class="text-xs text-slate-400 mt-2"><span id="crm-count-sem-retorno">0</span> aguardando</p></div>
+                            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border-l-4 border-emerald-500 shadow-sm dark:border-slate-800"><div class="flex justify-between items-start"><div><p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Em Carteira (Ativos)</p><h3 class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1" id="crm-ativos">R$ 0,00</h3></div><div class="bg-emerald-100 dark:bg-emerald-900/30 p-1.5 rounded-lg text-emerald-600 dark:text-emerald-400"><i class="ph-bold ph-wallet text-xl"></i></div></div><p class="text-xs text-slate-400 mt-2"><span id="crm-count-ativos">0</span> fechados</p></div>
+                            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border-l-4 border-slate-400 shadow-sm dark:border-slate-800"><div class="flex justify-between items-start"><div><p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Perdidos / Inativos</p><h3 class="text-2xl font-bold text-slate-600 dark:text-slate-300 mt-1" id="crm-inativos">R$ 0,00</h3></div><div class="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-lg text-slate-500 dark:text-slate-400"><i class="ph-bold ph-prohibit text-xl"></i></div></div><p class="text-xs text-slate-400 mt-2"><span id="crm-count-inativos">0</span> cancelados</p></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 py-6">
+                        <div class="lg:col-span-1">
+                            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 sticky top-48">
+                                <h3 class="font-bold text-lg mb-5 flex items-center gap-2 text-slate-800 dark:text-white"><span class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-1.5 rounded-lg"><i class="ph-bold ph-plus"></i></span> Novo Lead</h3>
+                                <form onsubmit="window.adicionarLead(event)" class="space-y-4">
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Nome do Cliente *</label><input type="text" id="lead-nome" placeholder="Ex: João Silva" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div>
+                                    <div class="grid grid-cols-2 gap-3"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Empresa</label><input type="text" id="lead-empresa" placeholder="Nome Fantasia" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">CPF / CNPJ</label><input type="text" id="lead-doc" placeholder="000.000..." class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"></div></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Rede Social (Link)</label><div class="relative"><div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="ph-bold ph-link text-slate-400"></i></div><input type="text" id="lead-social" placeholder="instagram.com/cliente" class="w-full pl-10 p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"></div></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Valor Estimado (R$)</label><input type="number" id="lead-valor" placeholder="0,00" step="0.01" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div>
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg shadow-blue-600/20 flex justify-center items-center gap-2"><i class="ph-bold ph-floppy-disk"></i> Cadastrar Lead</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-2 space-y-4">
+                            <!-- HEADER TOTAL GERAL -->
+                            <div class="sticky top-48 z-30 bg-slate-50 dark:bg-slate-950 py-2 flex justify-between items-center mb-2">
+                                <h3 class="font-bold text-lg text-slate-700 dark:text-white">Pipeline Organizado</h3>
+                                <div class="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 px-3 py-1 rounded-lg text-sm font-bold border border-blue-100 dark:border-blue-800">Total Geral: <span id="total-negociacao-list">R$ 0,00</span></div>
+                            </div>
+                            <div id="lista-leads" class="space-y-6"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW SCRIPTS -->
+                <div id="view-scripts" class="view-section hidden fade-in px-4 md:px-8 py-6">
+                    <h3 class="font-bold text-lg text-slate-700 dark:text-white mb-6 flex items-center gap-2"><i class="ph-fill ph-chat-text text-indigo-500"></i> Scripts de Vendas</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-1"><div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 sticky top-4"><h4 class="font-bold text-base mb-4 text-slate-800 dark:text-white">Adicionar Novo Script</h4><form onsubmit="window.adicionarScript(event)" class="space-y-4"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Título / Assunto</label><input type="text" id="script-titulo" placeholder="Ex: Apresentação Fria LinkedIn" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Mensagem</label><div class="flex justify-between items-center mb-1"><button type="button" id="btn-gerar-script" onclick="window.gerarScriptIA()" class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded flex items-center gap-1 font-bold hover:bg-purple-200 transition-colors"><i class="ph-bold ph-sparkle"></i> Gerar com IA</button></div><textarea id="script-texto" rows="6" placeholder="Olá {nome}, vi seu perfil e..." required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></textarea></div><button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-600/20 flex justify-center items-center gap-2"><i class="ph-bold ph-plus-circle"></i> Salvar Script</button></form></div></div>
+                        <div class="lg:col-span-2"><div id="lista-scripts" class="space-y-4 grid grid-cols-1 gap-4"></div></div>
+                    </div>
+                </div>
+
+                <!-- VIEW SEM RETORNO -->
+                <div id="view-sem_retorno" class="view-section hidden fade-in px-4 md:px-8 py-6">
+                    <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg text-slate-700 dark:text-white flex items-center gap-2"><i class="ph-fill ph-clock text-amber-500"></i> Leads Sem Retorno</h3><div class="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 px-3 py-1 rounded-lg text-sm font-bold border border-amber-100 dark:border-amber-800">Total: <span id="total-sem-retorno-tab">R$ 0,00</span></div></div><div id="lista-sem-retorno" class="space-y-3"></div>
+                </div>
+
+                <!-- VIEW ATIVOS -->
+                <div id="view-ativos" class="view-section hidden fade-in px-4 md:px-8 py-6">
+                    <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg text-slate-700 dark:text-white flex items-center gap-2"><i class="ph-fill ph-check-circle text-emerald-500"></i> Carteira de Clientes Ativos</h3><div class="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 px-3 py-1 rounded-lg text-sm font-bold border border-emerald-100 dark:border-emerald-800">Total: <span id="total-ativos-tab">R$ 0,00</span></div></div><div id="lista-ativos-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+
+                <!-- VIEW CONTRATOS -->
+                <div id="view-contratos" class="view-section hidden fade-in px-4 md:px-8 py-6">
+                    <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-lg text-slate-700 dark:text-white flex items-center gap-2"><i class="ph-fill ph-file-text text-purple-500"></i> Gestão de Contratos (Ativos)</h3><div class="text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full flex items-center gap-1"><i class="ph-bold ph-info"></i> Anexe links do Drive/Cloud</div></div><div id="lista-contratos" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+                
+                <!-- VIEW NOTAS FISCAIS -->
+                <div id="view-notas" class="view-section hidden fade-in px-4 md:px-8 py-6">
+                    <h3 class="font-bold text-lg text-slate-700 dark:text-white mb-6 flex items-center gap-2"><i class="ph-fill ph-receipt text-indigo-500"></i> Gestão de Notas Fiscais</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-1"><div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 sticky top-4"><h4 class="font-bold text-base mb-4 text-slate-800 dark:text-white">Registrar Nova Nota</h4><form onsubmit="window.adicionarNota(event)" class="space-y-4"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Número da Nota</label><input type="text" id="nota-numero" placeholder="Ex: 001/2024" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Cliente</label><input type="text" id="nota-cliente" placeholder="Nome do Cliente" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></div><div class="grid grid-cols-2 gap-3"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Valor (R$)</label><input type="number" id="nota-valor" step="0.01" placeholder="0,00" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Data Emissão</label><input type="date" id="nota-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></div></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Link do Arquivo (Drive/Cloud)</label><input type="url" id="nota-link" placeholder="https://..." class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></div><button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-600/20 flex justify-center items-center gap-2"><i class="ph-bold ph-plus-circle"></i> Salvar Nota</button></form></div></div>
+                        <div class="lg:col-span-2"><div class="flex justify-between items-center mb-2"><h4 class="font-bold text-base text-slate-700 dark:text-slate-300">Histórico de Notas</h4><div class="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded-lg text-sm font-bold border border-indigo-100 dark:border-indigo-800">Total Emitido: <span id="total-notas">R$ 0,00</span></div></div><div id="lista-notas" class="space-y-3"></div></div>
+                    </div>
+                </div>
+
+                <!-- VIEW INATIVOS -->
+                <div id="view-inativos" class="view-section hidden fade-in px-4 md:px-8 py-6"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg text-slate-700 dark:text-white flex items-center gap-2"><i class="ph-fill ph-user-minus text-slate-500"></i> Clientes Inativos ou Perdidos</h3><div class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-lg text-sm font-bold border border-slate-200 dark:border-slate-700">Total: <span id="total-inativos-tab">R$ 0,00</span></div></div><div id="lista-inativos" class="space-y-3"></div></div>
+
+                <!-- VIEW FINANCEIRO -->
+                <div id="view-financeiro" class="view-section hidden fade-in">
+                    <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm w-full">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-emerald-500 shadow-sm"><p class="text-sm text-emerald-600 dark:text-emerald-400 font-bold">Receita Total</p><h3 class="text-2xl font-bold text-emerald-800 dark:text-emerald-300" id="pj-receita">R$ 0,00</h3></div>
+                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-rose-500 shadow-sm"><p class="text-sm text-rose-600 dark:text-rose-400 font-bold">Despesas</p><h3 class="text-2xl font-bold text-rose-800 dark:text-rose-300" id="pj-despesa">R$ 0,00</h3></div>
+                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm"><div class="flex justify-between"><p class="text-sm text-slate-500 dark:text-slate-400 font-bold">Saldo em Caixa</p></div><h3 class="text-2xl font-bold text-slate-700 dark:text-white" id="pj-saldo">R$ 0,00</h3></div>
+                        </div>
+
+                        <!-- === MEDIDOR DE SAÚDE FINANCEIRA === -->
+                        <div id="painel-saude-financeira" class="mt-6 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                                <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                    <i class="ph-fill ph-heartbeat text-rose-500 text-xl"></i> Distribuição Inteligente de Lucro
+                                </h3>
+                                <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Retenção (Caixa):</span>
+                                    <input type="number" id="input-percentual-reserva" min="0" max="100" value="20" class="w-16 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded text-center text-sm font-bold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="window.salvarConfigFinanceira()">
+                                    <span class="text-sm font-bold text-slate-600 dark:text-slate-300">%</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                                <!-- Coluna da Esquerda: Barra de Saúde -->
+                                <div>
+                                    <div class="flex justify-between items-end mb-1">
+                                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Saúde Financeira</span>
+                                        <span id="label-saude-status" class="text-sm font-bold text-emerald-600">Excelente</span>
+                                    </div>
+                                    <div class="health-bar-container w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full">
+                                        <div id="bar-saude-fill" class="health-bar-fill h-full bg-emerald-500 rounded-full" style="width: 0%"></div>
+                                    </div>
+                                    <p id="label-saude-msg" class="text-xs text-slate-400 mt-2">Sua margem de lucro está acima de 30%.</p>
+                                </div>
+
+                                <!-- Coluna da Direita: Distribuição (Salário) -->
+                                <div class="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-xs font-bold text-indigo-400 uppercase">Reserva da Empresa</span>
+                                        <span id="val-reserva-empresa" class="text-sm font-bold text-indigo-600 dark:text-indigo-400">R$ 0,00</span>
+                                    </div>
+                                    <div class="border-t border-indigo-200 dark:border-indigo-800 my-2"></div>
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <span class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Seu Salário (Pró-Labore)</span>
+                                            <span class="text-[10px] text-slate-400">Livre para saque</span>
+                                        </div>
+                                        <span id="val-meu-salario" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">R$ 0,00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 py-6">
+                        <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm h-72"><canvas id="grafico-pj"></canvas></div>
+                        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white">Registrar Movimento</h3>
+                        <form onsubmit="window.adicionarTransacao(event, 'pj')" class="space-y-3">
+                            <div class="flex gap-2"><label class="flex-1 cursor-pointer"><input type="radio" name="pj-tipo" value="entrada" checked class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-emerald-100 peer-checked:text-emerald-700 peer-checked:border-emerald-200 dark:peer-checked:bg-emerald-900/30 dark:peer-checked:text-emerald-400 dark:text-slate-300 transition-all font-medium text-sm">Entrada</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="pj-tipo" value="saida" class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-rose-100 peer-checked:text-rose-700 peer-checked:border-rose-200 dark:peer-checked:bg-rose-900/30 dark:peer-checked:text-rose-400 dark:text-slate-300 transition-all font-medium text-sm">Saída</div></label></div>
+                            <div class="grid grid-cols-2 gap-3"><input type="text" id="pj-desc" placeholder="Descrição (ex: Conta de Luz)" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"><input type="number" id="pj-valor" placeholder="Valor (R$)" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                            
+                            <!-- MODALIDADE -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <select id="pj-modalidade" onchange="window.toggleModalidade('pj')" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium">
+                                    <option value="unico">Único</option>
+                                    <option value="recorrente">Recorrente (Mensal)</option>
+                                    <option value="parcelado">Parcelado</option>
+                                </select>
+                                <input type="date" id="pj-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <!-- PARCELAS / RECORRENCIA (CONDICIONAL) -->
+                            <div id="pj-parcelas-container" class="hidden">
+                                <label id="pj-parcelas-label" class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Quantidade</label>
+                                <input type="number" id="pj-parcelas" placeholder="Qtd" min="1" value="12" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <button type="submit" class="w-full bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-slate-900/10">Confirmar</button>
                         </form>
+                        </div>
                     </div>
-                    <div class="lg:col-span-2 space-y-4" id="lista-leads"><div class="text-center text-slate-500 py-10 flex flex-col items-center"><i class="ph-bold ph-spinner animate-spin text-3xl mb-2"></i><span>Carregando dados...</span></div></div>
+                    <div class="mt-0 px-4 md:px-8 pb-6"><h3 class="font-bold text-slate-700 dark:text-white mb-3">Extrato Recente</h3><div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm"><div class="max-h-80 overflow-y-auto"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pj" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div></div>
                 </div>
-            </div>
 
-            <div id="view-financeiro" class="view-section hidden fade-in">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div class="bg-slate-900 p-4 rounded-xl border-l-4 border-emerald-500"><p class="text-sm text-emerald-400 font-bold">Receita</p><h3 class="text-2xl font-bold text-emerald-300" id="pj-receita">R$ 0,00</h3></div>
-                    <div class="bg-slate-900 p-4 rounded-xl border-l-4 border-rose-500"><p class="text-sm text-rose-400 font-bold">Despesas</p><h3 class="text-2xl font-bold text-rose-300" id="pj-despesa">R$ 0,00</h3></div>
-                    <div class="bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500"><p class="text-sm text-slate-400 font-bold">Caixa</p><h3 class="text-2xl font-bold text-white" id="pj-saldo">R$ 0,00</h3></div>
+                <!-- VIEW PESSOAL -->
+                <div id="view-pessoal" class="view-section hidden fade-in">
+                    <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm w-full">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm"><p class="text-sm text-blue-600 dark:text-blue-400 font-bold">Ganhos Pessoais</p><h3 class="text-2xl font-bold text-blue-800 dark:text-blue-300" id="pf-receita">R$ 0,00</h3></div>
+                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-orange-500 shadow-sm"><p class="text-sm text-orange-600 dark:text-orange-400 font-bold">Gastos Pessoais</p><h3 class="text-2xl font-bold text-orange-800 dark:text-orange-300" id="pf-despesa">R$ 0,00</h3></div>
+                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-slate-500 shadow-sm"><div class="flex justify-between"><p class="text-sm text-slate-600 dark:text-slate-400 font-bold">Saldo Pessoal</p></div><h3 class="text-2xl font-bold text-slate-700 dark:text-white" id="pf-saldo">R$ 0,00</h3></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 py-6">
+                        <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm h-72"><canvas id="grafico-pf"></canvas></div>
+                        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white">Movimentação Pessoal</h3>
+                        <form onsubmit="window.adicionarTransacao(event, 'pf')" class="space-y-3">
+                            <div class="flex gap-2"><label class="flex-1 cursor-pointer"><input type="radio" name="pf-tipo" value="entrada" checked class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-blue-100 peer-checked:text-blue-700 peer-checked:border-blue-200 dark:peer-checked:bg-blue-900/30 dark:peer-checked:text-blue-400 dark:text-slate-300 transition-all font-medium text-sm">Ganho</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="pf-tipo" value="saida" class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-orange-100 peer-checked:text-orange-700 peer-checked:border-orange-200 dark:peer-checked:bg-orange-900/30 dark:peer-checked:text-orange-400 dark:text-slate-300 transition-all font-medium text-sm">Gasto</div></label></div>
+                            <div class="grid grid-cols-2 gap-3"><input type="text" id="pf-desc" placeholder="Descrição (ex: Aluguel)" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"><input type="number" id="pf-valor" placeholder="Valor (R$)" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                            
+                            <!-- MODALIDADE -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <select id="pf-modalidade" onchange="window.toggleModalidade('pf')" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium">
+                                    <option value="unico">Único</option>
+                                    <option value="recorrente">Recorrente (Mensal)</option>
+                                    <option value="parcelado">Parcelado</option>
+                                </select>
+                                <input type="date" id="pf-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <!-- PARCELAS / RECORRENCIA -->
+                            <div id="pf-parcelas-container" class="hidden">
+                                <label id="pf-parcelas-label" class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Quantidade</label>
+                                <input type="number" id="pf-parcelas" placeholder="Qtd" min="1" value="12" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-blue-600/20">Registrar</button>
+                        </form>
+                        </div>
+                    </div>
+                    <div class="mt-0 px-4 md:px-8 pb-6"><h3 class="font-bold text-slate-700 dark:text-white mb-3">Extrato Pessoal</h3><div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm"><div class="max-h-80 overflow-y-auto"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pf" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div></div>
                 </div>
-                <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 shadow-sm mb-6">
-                    <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white flex gap-2"><i class="ph-fill ph-heartbeat text-rose-500 text-xl"></i> Saúde Financeira</h3><div class="flex gap-2 bg-slate-800 p-1.5 rounded-lg"><span class="text-xs font-bold text-slate-400 uppercase pt-1">Retenção:</span><input type="number" id="input-reserva" value="20" class="w-12 bg-slate-900 border border-slate-600 rounded text-center text-sm font-bold text-white" onchange="calcularSaudeFinanceira()"><span class="text-sm font-bold text-slate-300">%</span></div></div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                        <div><div class="flex justify-between mb-1"><span class="text-xs text-slate-400 uppercase">Status</span><span id="label-saude-status" class="text-sm font-bold text-emerald-400">--</span></div><div class="w-full h-4 bg-slate-800 rounded-full overflow-hidden"><div id="bar-saude-fill" class="h-full bg-emerald-500 w-0 transition-all"></div></div></div>
-                        <div class="bg-indigo-900/10 p-4 rounded-xl border border-indigo-800/30 flex justify-between items-center"><div><span class="block text-xs font-bold text-slate-400 uppercase">Seu Salário</span><span class="text-[10px] text-slate-500">Pró-Labore Livre</span></div><span id="val-meu-salario" class="text-2xl font-bold text-emerald-400">R$ 0,00</span></div>
+
+                <!-- NOVA ABA PERFIL -->
+                <div id="view-perfil" class="view-section hidden fade-in px-4 md:px-8 py-6">
+                    <h3 class="font-bold text-lg text-slate-700 dark:text-white mb-6 flex items-center gap-2"><i class="ph-fill ph-user-gear text-blue-600"></i> Configurar Perfil da Empresa</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="md:col-span-1">
+                            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 text-center">
+                                <div class="relative w-32 h-32 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-800 border-4 border-white dark:border-slate-600 shadow-md overflow-hidden flex items-center justify-center group"><img id="profile-preview" src="" alt="" class="w-full h-full object-cover hidden"><i id="profile-placeholder" class="ph-fill ph-user text-4xl text-slate-300"></i><label for="profile-upload" class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-xs font-bold uppercase tracking-widest">Alterar</label></div>
+                                <input type="file" id="profile-upload" accept="image/*" class="hidden" onchange="window.uploadProfileImage(this)">
+                                <h4 class="font-bold text-slate-800 dark:text-white" id="display-company">Sua Empresa</h4><p class="text-sm text-slate-500 dark:text-slate-400" id="display-name">Seu Nome</p>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                                <form onsubmit="window.salvarPerfil(event)" class="space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Nome da Empresa</label><input type="text" id="prof-company" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Seu Nome</label><input type="text" id="prof-name" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">E-mail</label><input type="email" id="prof-email" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Telefone</label><input type="text" id="prof-phone" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Cargo / Função</label><input type="text" id="prof-role" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div>
+                                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end"><button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors shadow-lg shadow-blue-600/20">Salvar Alterações</button></div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 bg-slate-900 p-4 rounded-xl border border-slate-800 h-96"><canvas id="grafico-pj" height="250"></canvas><div class="h-48 overflow-y-auto mt-4"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pj" class="divide-y divide-slate-800"></tbody></table></div></div>
-                    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-white">Lançar</h3><form onsubmit="adicionarTransacao(event, 'pj')" class="space-y-3"><div class="flex gap-2"><label class="flex-1 cursor-pointer bg-slate-950 p-2 rounded text-center border border-slate-800"><input type="radio" name="pj-tipo" value="entrada" checked class="hidden">Entrada</label><label class="flex-1 cursor-pointer bg-slate-950 p-2 rounded text-center border border-slate-800"><input type="radio" name="pj-tipo" value="saida" class="hidden">Saída</label></div><input type="text" id="pj-desc" placeholder="Descrição" required class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white"><input type="number" id="pj-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white"><div class="grid grid-cols-2 gap-2"><select id="pj-modalidade" class="p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm" onchange="toggleModalidade('pj')"><option value="unico">Único</option><option value="recorrente">Recorrente</option><option value="parcelado">Parcelado</option></select><input type="date" id="pj-data" required class="p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm"></div><div id="pj-parcelas-container" class="hidden"><input type="number" id="pj-parcelas" placeholder="Qtd Meses/Parcelas" class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white mt-2"></div><button type="submit" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-lg font-bold">Salvar</button></form></div>
+
+            </main>
+
+            <!-- RODAPÉ FIXO MINIMALISTA -->
+            <footer class="text-center py-4 px-4 text-slate-400 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 z-30 text-[10px]">
+                <div class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6">
+                    <div class="flex flex-col md:flex-row items-center gap-1 md:gap-3">
+                        <p>&copy; <script>document.write(new Date().getFullYear())</script> Gestor Pro.</p>
+                        <p class="uppercase tracking-wide font-bold opacity-60 hidden md:block">|</p>
+                        <p class="uppercase tracking-wide font-bold opacity-60">🚫 Proibido o repasse/revenda</p>
+                    </div>
                 </div>
-            </div>
-
-            <div id="view-pessoal" class="view-section hidden fade-in">
-                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"><div class="bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500"><p class="text-sm text-blue-400 font-bold">Entradas</p><h3 class="text-2xl font-bold text-blue-300" id="pf-receita">R$ 0,00</h3></div><div class="bg-slate-900 p-4 rounded-xl border-l-4 border-orange-500"><p class="text-sm text-orange-400 font-bold">Saídas</p><h3 class="text-2xl font-bold text-orange-300" id="pf-despesa">R$ 0,00</h3></div><div class="bg-slate-900 p-4 rounded-xl border-l-4 border-slate-500"><p class="text-sm text-slate-400 font-bold">Saldo</p><h3 class="text-2xl font-bold text-white" id="pf-saldo">R$ 0,00</h3></div></div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="lg:col-span-2 bg-slate-900 p-4 rounded-xl border border-slate-800 h-96"><canvas id="grafico-pf" height="250"></canvas><div class="h-48 overflow-y-auto mt-4"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pf" class="divide-y divide-slate-800"></tbody></table></div></div><div class="bg-slate-900 p-5 rounded-xl border border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-white">Lançar Pessoal</h3><form onsubmit="adicionarTransacao(event, 'pf')" class="space-y-3"><div class="flex gap-2"><label class="flex-1 cursor-pointer bg-slate-950 p-2 rounded text-center border border-slate-800"><input type="radio" name="pf-tipo" value="entrada" checked class="hidden">Ganho</label><label class="flex-1 cursor-pointer bg-slate-950 p-2 rounded text-center border border-slate-800"><input type="radio" name="pf-tipo" value="saida" class="hidden">Gasto</label></div><input type="text" id="pf-desc" placeholder="Descrição" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white"><input type="number" id="pf-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white"><div class="grid grid-cols-2 gap-2"><select id="pf-modalidade" class="p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm" onchange="toggleModalidade('pf')"><option value="unico">Único</option><option value="recorrente">Recorrente</option><option value="parcelado">Parcelado</option></select><input type="date" id="pf-data" required class="p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white text-sm"></div><div id="pf-parcelas-container" class="hidden"><input type="number" id="pf-parcelas" placeholder="Qtd Meses/Parcelas" class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white mt-2"></div><button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg font-bold">Salvar</button></form></div></div>
-            </div>
-
-            <div id="view-scripts" class="view-section hidden fade-in"><h3 class="font-bold text-lg text-slate-400 mb-4">Scripts de Vendas</h3><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="lg:col-span-1 bg-slate-900 p-5 rounded-xl border border-slate-800 sticky top-4"><h4 class="font-bold text-base mb-4 text-white">Adicionar Novo Script</h4><form onsubmit="adicionarScript(event)" class="space-y-4"><div><label class="block text-xs font-bold text-slate-400 mb-1 uppercase">Título / Assunto</label><input type="text" id="script-titulo" placeholder="Ex: Apresentação Fria LinkedIn" required class="w-full p-2.5 border border-slate-700 rounded-lg bg-slate-950 text-white"></div><div><label class="block text-xs font-bold text-slate-400 mb-1 uppercase">Mensagem</label><textarea id="script-texto" rows="6" placeholder="Olá {nome}, vi seu perfil e..." required class="w-full p-2.5 border border-slate-700 rounded-lg bg-slate-950 text-white"></textarea></div><button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold shadow-lg">Salvar Script</button></form></div><div class="lg:col-span-2" id="lista-scripts"><div class="text-center text-slate-500">Carregando scripts...</div></div></div></div>
-            
-            <div id="view-notas" class="view-section hidden fade-in"><h3 class="font-bold text-lg text-slate-400 mb-4">Notas Fiscais</h3><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="lg:col-span-1 bg-slate-900 p-5 rounded-xl border border-slate-800 sticky top-4"><h4 class="font-bold text-base mb-4 text-white">Registrar Nota</h4><form onsubmit="adicionarNota(event)" class="space-y-4"><input type="text" id="nota-numero" placeholder="Número" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded text-white"><input type="text" id="nota-cliente" placeholder="Cliente" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded text-white"><input type="number" id="nota-valor" placeholder="Valor" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded text-white"><input type="date" id="nota-data" required class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded text-white"><input type="url" id="nota-link" placeholder="Link do Drive" class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded text-white"><button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded font-bold">Salvar</button></form></div><div class="lg:col-span-2" id="lista-notas"></div></div></div>
-
-            <div id="view-sem_retorno" class="view-section hidden fade-in"><h3 class="text-xl font-bold text-white mb-4">Aguardando Retorno</h3><div id="lista-sem-retorno" class="space-y-3"></div></div>
-            <div id="view-ativos" class="view-section hidden fade-in"><h3 class="text-xl font-bold text-white mb-4">Clientes Ativos</h3><div id="lista-ativos-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
-            <div id="view-contratos" class="view-section hidden fade-in"><h3 class="text-xl font-bold text-white mb-4">Contratos</h3><div id="lista-contratos" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
-            <div id="view-inativos" class="view-section hidden fade-in"><h3 class="text-xl font-bold text-white mb-4">Inativos</h3><div id="lista-inativos" class="space-y-3"></div></div>
-            
-            <div id="view-perfil" class="view-section hidden fade-in"><div class="max-w-2xl mx-auto bg-slate-900 p-8 rounded-2xl border border-slate-800 mt-10"><h3 class="text-xl font-bold text-white mb-6">Perfil da Empresa</h3><form onsubmit="salvarPerfil(event)" class="space-y-4"><input type="text" id="prof-company" placeholder="Empresa" class="w-full p-3 bg-slate-950 rounded text-white"><input type="text" id="prof-name" placeholder="Nome" class="w-full p-3 bg-slate-950 rounded text-white"><input type="text" id="prof-email" placeholder="Email" class="w-full p-3 bg-slate-950 rounded text-white"><button class="bg-blue-600 px-6 py-2 rounded text-white font-bold">Salvar Alterações</button></form></div></div>
-        </main>
+            </footer>
+        </div>
     </div>
 
-    <!-- MODALS -->
-    <div id="modal-config" class="hidden fixed inset-0 z-50 bg-slate-950/90 flex items-center justify-center p-4"><div class="bg-slate-900 p-6 rounded-xl border border-slate-700 w-full max-w-md"><h3 class="text-white mb-4">Configurar IA</h3><input type="password" id="input-api-key" placeholder="API Key" class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white mb-4"><div class="flex justify-end gap-2"><button onclick="document.getElementById('modal-config').classList.add('hidden')" class="text-slate-400">Cancelar</button><button onclick="salvarConfig()" class="bg-blue-600 px-4 py-2 rounded text-white">Salvar</button></div></div></div>
-    <div id="custom-input-box-container"></div>
+    <!-- MODAIS -->
+    <div id="modal-config" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 p-6 animate-in fade-in zoom-in-95 duration-200">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2"><i class="ph-fill ph-gear text-blue-600"></i> Ajustes & Dados</h3><button onclick="fecharConfig()" class="text-slate-400 hover:text-red-500"><i class="ph-bold ph-x text-xl"></i></button></div>
+            <div class="mb-4"><label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase">Gemini API Key (IA)</label><input type="password" id="input-api-key" placeholder="Cole sua chave..." class="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800"><button onclick="salvarConfig()" class="px-6 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-lg font-bold hover:bg-slate-900 w-full">Salvar</button></div>
+        </div>
+    </div>
 
-    <!-- FIREBASE MODULE -->
+    <!-- FIREBASE MODULE SCRIPT -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // SUAS CHAVES REAIS
         const firebaseConfig = {
             apiKey: "AIzaSyDSdQylysTQm4JyBGS6GPGO6MhI0rh6rMo",
             authDomain: "gestorpro-saas.firebaseapp.com",
             projectId: "gestorpro-saas",
             storageBucket: "gestorpro-saas.firebasestorage.app",
             messagingSenderId: "653082894438",
-            appId: "1:653082894438:web:4333cab368003c27d34da7"
+            appId: "1:653082894438:web:7f8e9d0a1b2c3d4e5f6g7h" 
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
-        
+        const auth = getAuth(app);
+
+        // Global DB State (Hybrid: Firestore or LocalStorage)
+        const DB = {
+            leads: JSON.parse(localStorage.getItem('gestor_leads')) || [],
+            scripts: JSON.parse(localStorage.getItem('gestor_scripts')) || [],
+            notas: JSON.parse(localStorage.getItem('gestor_notas')) || [],
+            pj: JSON.parse(localStorage.getItem('gestor_pj')) || [],
+            pf: JSON.parse(localStorage.getItem('gestor_pf')) || [],
+            profile: JSON.parse(localStorage.getItem('gestor_profile')) || {},
+            settings: JSON.parse(localStorage.getItem('gestor_settings')) || { reinvestRate: 20 }
+        };
+
         let currentUser = null;
-        let cachePJ = [];
-        let unsubLeads, unsubPJ, unsubPF, unsubScripts, unsubNotas;
+        let useLocalStorage = false; // Default false, will switch to true if firebase fails
+
+        // Helper to save local
+        function saveLocal() {
+            localStorage.setItem('gestor_leads', JSON.stringify(DB.leads)); 
+            localStorage.setItem('gestor_scripts', JSON.stringify(DB.scripts)); 
+            localStorage.setItem('gestor_notas', JSON.stringify(DB.notas)); 
+            localStorage.setItem('gestor_pj', JSON.stringify(DB.pj)); 
+            localStorage.setItem('gestor_pf', JSON.stringify(DB.pf)); 
+            localStorage.setItem('gestor_profile', JSON.stringify(DB.profile)); 
+            localStorage.setItem('gestor_settings', JSON.stringify(DB.settings));
+        }
+
+        // Initialize Authentication
+        async function initAuth() {
+            try {
+                // 1. Try Custom Token (Priority if provided by environment)
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    try {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                        return; // Success
+                    } catch (e) {
+                        console.warn("Custom token auth failed, falling back to anonymous:", e);
+                    }
+                }
+
+                // 2. Fallback to Anonymous
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.warn("Firebase Auth Error, enabling Offline Mode:", error);
+                
+                // Fallback to LocalStorage
+                useLocalStorage = true;
+                document.getElementById('firebase-loading').classList.add('hidden');
+                window.mostrarToast('Modo Offline: Dados salvos no navegador.');
+                renderizar();
+            }
+        }
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                document.getElementById('user-email-display').innerText = user.email;
-                document.getElementById('login-overlay').classList.add('opacity-0', 'pointer-events-none');
-                document.getElementById('app-content').classList.remove('opacity-0', 'pointer-events-none');
-                document.getElementById('app-content').classList.remove('blur-content');
-                iniciarListeners(user.uid); 
-                initBackgroundAnimation(); 
+                useLocalStorage = false;
+                document.getElementById('firebase-loading').classList.add('hidden');
+                setupRealtimeListeners(user.uid);
             } else {
-                currentUser = null;
-                document.getElementById('login-overlay').classList.remove('opacity-0', 'pointer-events-none');
-                document.getElementById('app-content').classList.add('opacity-0', 'pointer-events-none');
-                document.getElementById('app-content').classList.add('blur-content');
-                initBackgroundAnimation();
+                // Only show loading if we haven't already fallen back to local storage
+                if(!useLocalStorage && document.getElementById('firebase-loading').classList.contains('hidden')) {
+                     document.getElementById('firebase-loading').classList.remove('hidden');
+                }
             }
         });
 
-        document.getElementById('login-form').addEventListener('submit', (e) => {
+        initAuth();
+
+        function setupRealtimeListeners(uid) {
+            // Listeners overwrite local state with server state
+            onSnapshot(collection(db, 'users', uid, 'leads'), (snap) => { DB.leads = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderizar(); });
+            onSnapshot(collection(db, 'users', uid, 'scripts'), (snap) => { DB.scripts = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderizar(); });
+            onSnapshot(collection(db, 'users', uid, 'notas'), (snap) => { DB.notas = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderizar(); });
+            onSnapshot(collection(db, 'users', uid, 'transacoes_pj'), (snap) => { DB.pj = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderizar(); });
+            onSnapshot(collection(db, 'users', uid, 'transacoes_pf'), (snap) => { DB.pf = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderizar(); });
+            onSnapshot(doc(db, 'users', uid, 'config', 'profile'), (docSnap) => { if (docSnap.exists()) { DB.profile = docSnap.data(); window.carregarPerfil(); } });
+            onSnapshot(doc(db, 'users', uid, 'config', 'settings'), (docSnap) => { if (docSnap.exists()) { DB.settings = docSnap.data(); const input = document.getElementById('input-percentual-reserva'); if(input) input.value = DB.settings.reinvestRate || 20; renderizar(); } });
+        }
+
+        // --- GLOBAL FUNCTIONS (HYBRID) ---
+
+        window.adicionarLead = async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('login-btn');
-            const originalText = btn.innerHTML;
-            const msg = document.getElementById('login-msg');
-            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>';
-            msg.classList.add('hidden');
+            const nome = document.getElementById('lead-nome').value;
+            const empresa = document.getElementById('lead-empresa').value;
+            const docVal = document.getElementById('lead-doc').value;
+            let social = document.getElementById('lead-social').value;
+            const valor = parseFloat(document.getElementById('lead-valor').value) || 0;
+            if (social && !social.startsWith('http')) social = 'https://' + social;
+
+            if (useLocalStorage) {
+                DB.leads.unshift({ id: Date.now().toString(), nome, empresa, doc: docVal, social, valor, status: 'negociacao', createdAt: Date.now() });
+                saveLocal();
+                renderizar();
+            } else {
+                await addDoc(collection(db, 'users', currentUser.uid, 'leads'), {
+                    nome, empresa, doc: docVal, social, valor, status: 'negociacao', createdAt: Date.now()
+                });
+            }
+            e.target.reset();
+            window.mostrarToast(useLocalStorage ? 'Lead salvo (Local)!' : 'Lead salvo na nuvem!');
+        };
+
+        window.alterarStatusLead = async (id, ns) => {
+            const l = DB.leads.find(l => l.id === id);
+            if (!l) return;
+            const statusAnterior = l.status;
+
+            if (useLocalStorage) {
+                l.status = ns;
+                // Local Automations
+                if (ns === 'ganho' && statusAnterior !== 'ganho') {
+                    if (!DB.pj.find(t => t.leadId === id)) {
+                        DB.pj.unshift({ id: Date.now().toString(), leadId: id, op: 'entrada', desc: `Contrato: ${l.nome}`, valor: l.valor, data: new Date().toLocaleDateString('pt-BR'), modalidade: 'recorrente', createdAt: Date.now() });
+                    }
+                } else if (statusAnterior === 'ganho' && ns !== 'ganho') {
+                    DB.pj = DB.pj.filter(t => t.leadId !== id);
+                }
+                saveLocal();
+                renderizar();
+            } else {
+                await updateDoc(doc(db, 'users', currentUser.uid, 'leads', id), { status: ns });
+                // Cloud Automations
+                if (ns === 'ganho' && statusAnterior !== 'ganho') {
+                    const existe = DB.pj.find(t => t.leadId === id);
+                    if (!existe) {
+                        await addDoc(collection(db, 'users', currentUser.uid, 'transacoes_pj'), {
+                            leadId: id, op: 'entrada', desc: `Contrato: ${l.nome} (${l.empresa || 'Cliente'})`,
+                            valor: l.valor, data: new Date().toLocaleDateString('pt-BR'), modalidade: 'recorrente', createdAt: Date.now()
+                        });
+                        window.mostrarToast('Cliente Ativo! Receita somada.');
+                    }
+                } else if (statusAnterior === 'ganho' && ns !== 'ganho') {
+                    const trans = DB.pj.find(t => t.leadId === id);
+                    if (trans) {
+                        await deleteDoc(doc(db, 'users', currentUser.uid, 'transacoes_pj', trans.id));
+                        window.mostrarToast('Receita removida.');
+                    }
+                }
+            }
+        };
+
+        window.excluirLead = async (id) => {
+            if (confirm('Excluir este lead e dados financeiros vinculados?')) {
+                if(useLocalStorage) {
+                    DB.leads = DB.leads.filter(l => l.id !== id);
+                    DB.pj = DB.pj.filter(t => t.leadId !== id);
+                    saveLocal();
+                    renderizar();
+                } else {
+                    await deleteDoc(doc(db, 'users', currentUser.uid, 'leads', id));
+                    const trans = DB.pj.find(t => t.leadId === id);
+                    if (trans) await deleteDoc(doc(db, 'users', currentUser.uid, 'transacoes_pj', trans.id));
+                }
+                window.mostrarToast('Excluído.');
+            }
+        };
+
+        window.adicionarScript = async (e) => {
+            e.preventDefault();
+            const titulo = document.getElementById('script-titulo').value;
+            const texto = document.getElementById('script-texto').value;
+            if(useLocalStorage) {
+                DB.scripts.unshift({ id: Date.now().toString(), titulo, texto, createdAt: Date.now() });
+                saveLocal();
+                renderizar();
+            } else {
+                await addDoc(collection(db, 'users', currentUser.uid, 'scripts'), { titulo, texto, createdAt: Date.now() });
+            }
+            e.target.reset();
+            window.mostrarToast('Script salvo!');
+        };
+        
+        window.excluirScript = async (id) => {
+            if (confirm('Excluir?')) {
+                if(useLocalStorage) {
+                    DB.scripts = DB.scripts.filter(s => s.id !== id);
+                    saveLocal();
+                    renderizar();
+                } else {
+                    await deleteDoc(doc(db, 'users', currentUser.uid, 'scripts', id));
+                }
+            }
+        };
+
+        window.adicionarNota = async (e) => {
+            e.preventDefault();
+            const noteData = {
+                numero: document.getElementById('nota-numero').value,
+                cliente: document.getElementById('nota-cliente').value,
+                valor: parseFloat(document.getElementById('nota-valor').value) || 0,
+                data: document.getElementById('nota-data').value,
+                link: document.getElementById('nota-link').value,
+                status: 'emitida',
+                createdAt: Date.now()
+            };
+            if(useLocalStorage) {
+                DB.notas.unshift({ id: Date.now().toString(), ...noteData });
+                saveLocal();
+                renderizar();
+            } else {
+                await addDoc(collection(db, 'users', currentUser.uid, 'notas'), noteData);
+            }
+            e.target.reset();
+            window.mostrarToast('Nota registrada!');
+        };
+
+        window.alterarStatusNota = async (id, status) => {
+            if(useLocalStorage) {
+                const n = DB.notas.find(n => n.id === id);
+                if(n) { n.status = status; saveLocal(); renderizar(); }
+            } else {
+                await updateDoc(doc(db, 'users', currentUser.uid, 'notas', id), { status });
+            }
+        };
+        
+        window.excluirNota = async (id) => {
+            if (confirm('Excluir?')) {
+                if(useLocalStorage) {
+                    DB.notas = DB.notas.filter(n => n.id !== id);
+                    saveLocal();
+                    renderizar();
+                } else {
+                    await deleteDoc(doc(db, 'users', currentUser.uid, 'notas', id));
+                }
+            }
+        };
+
+        window.adicionarTransacao = async (e, tipo) => {
+            e.preventDefault();
+            const op = document.querySelector(`input[name="${tipo}-tipo"]:checked`).value;
+            const desc = document.getElementById(`${tipo}-desc`).value;
+            const v = parseFloat(document.getElementById(`${tipo}-valor`).value) || 0;
+            const modalidade = document.getElementById(`${tipo}-modalidade`).value;
+            const qtdInput = parseInt(document.getElementById(`${tipo}-parcelas`).value) || 1;
+            const dataInicial = document.getElementById(`${tipo}-data`).value;
+
+            if (!desc || !v || !dataInicial) return;
+
+            let loopCount = modalidade === 'unico' ? 1 : qtdInput;
+            let dateObj = new Date(dataInicial);
+            dateObj.setHours(12, 0, 0, 0);
+
+            const colName = tipo === 'pj' ? 'transacoes_pj' : 'transacoes_pf';
+            const listRef = tipo === 'pj' ? DB.pj : DB.pf;
+
+            const batchPromises = [];
+
+            for (let i = 0; i < loopCount; i++) {
+                let currentDesc = desc;
+                if (modalidade === 'parcelado') currentDesc = `${desc} (${i + 1}/${loopCount})`;
+
+                let newDate = new Date(dateObj);
+                newDate.setMonth(newDate.getMonth() + i);
+                const formattedDate = newDate.toLocaleDateString('pt-BR');
+                const tData = { op, desc: currentDesc, valor: v, data: formattedDate, modalidade, createdAt: Date.now() + i };
+
+                if(useLocalStorage) {
+                    listRef.unshift({ id: (Date.now() + i).toString(), ...tData });
+                } else {
+                    batchPromises.push(addDoc(collection(db, 'users', currentUser.uid, colName), tData));
+                }
+            }
+
+            if(useLocalStorage) {
+                saveLocal();
+                renderizar();
+            } else {
+                await Promise.all(batchPromises);
+            }
+            e.target.reset();
+            document.getElementById(`${tipo}-modalidade`).value = 'unico';
+            window.toggleModalidade(tipo);
+            window.mostrarToast('Lançamento(s) realizado(s)!');
+        };
+
+        window.excluirTransacao = async (id, tipo) => {
+            if (confirm('Excluir?')) {
+                if(useLocalStorage) {
+                    if (tipo === 'pj') DB.pj = DB.pj.filter(t => t.id !== id);
+                    else DB.pf = DB.pf.filter(t => t.id !== id);
+                    saveLocal();
+                    renderizar();
+                } else {
+                    const colName = tipo === 'pj' ? 'transacoes_pj' : 'transacoes_pf';
+                    await deleteDoc(doc(db, 'users', currentUser.uid, colName, id));
+                }
+            }
+        };
+
+        window.salvarConfigFinanceira = async () => {
+            const rate = parseFloat(document.getElementById('input-percentual-reserva').value) || 0;
+            if(useLocalStorage) {
+                DB.settings.reinvestRate = rate;
+                saveLocal();
+                renderizar();
+            } else {
+                await setDoc(doc(db, 'users', currentUser.uid, 'config', 'settings'), { reinvestRate: rate }, { merge: true });
+            }
+        };
+
+        window.salvarPerfil = async (e) => {
+            e.preventDefault();
+            const profileData = {
+                company: document.getElementById('prof-company').value,
+                name: document.getElementById('prof-name').value,
+                email: document.getElementById('prof-email').value,
+                phone: document.getElementById('prof-phone').value,
+                role: document.getElementById('prof-role').value
+            };
+            if(useLocalStorage) {
+                // Merge with existing
+                DB.profile = { ...DB.profile, ...profileData };
+                saveLocal();
+                window.carregarPerfil();
+            } else {
+                if (DB.profile.image) profileData.image = DB.profile.image;
+                await setDoc(doc(db, 'users', currentUser.uid, 'config', 'profile'), profileData, { merge: true });
+            }
+            window.mostrarToast('Perfil salvo!');
+        };
+        
+        window.uploadProfileImage = (input) => {
+             const file = input.files[0];
+             if (file) {
+                 const reader = new FileReader();
+                 reader.onload = async function(e) {
+                     const imgData = e.target.result;
+                     if(useLocalStorage) {
+                         DB.profile.image = imgData;
+                         saveLocal();
+                         window.carregarPerfil();
+                     } else {
+                         await setDoc(doc(db, 'users', currentUser.uid, 'config', 'profile'), { image: imgData }, { merge: true });
+                     }
+                 };
+                 reader.readAsDataURL(file);
+             }
+        };
+
+        window.salvarContrato = async (id) => {
+             const data = {
+                 contrato_inicio: document.getElementById(`c-ini-${id}`).value,
+                 contrato_fim: document.getElementById(`c-fim-${id}`).value,
+                 contrato_link: document.getElementById(`c-link-${id}`).value
+             };
+             if(useLocalStorage) {
+                 const l = DB.leads.find(l => l.id === id);
+                 if(l) { Object.assign(l, data); saveLocal(); }
+             } else {
+                 await updateDoc(doc(db, 'users', currentUser.uid, 'leads', id), data);
+             }
+             window.mostrarToast('Contrato salvo!');
+        };
+        
+        window.confirmarEdicaoValor = async (id) => {
+            const data = {
+                nome: document.getElementById('edit-nome').value,
+                empresa: document.getElementById('edit-empresa').value,
+                doc: document.getElementById('edit-doc').value,
+                social: document.getElementById('edit-social').value,
+                valor: parseFloat(document.getElementById('edit-valor').value)
+            };
+
+            if(!data.nome || isNaN(data.valor)) { alert("Dados inválidos"); return; }
             
-            signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value)
-            .catch((error) => {
-                if(error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                     if(confirm("Usuário não encontrado. Deseja criar esta conta agora?")) {
-                         createUserWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value)
-                         .then(() => alert("Conta criada! Entrando..."))
-                         .catch(err => { msg.innerText = "Erro ao criar: " + err.message; msg.classList.remove('hidden'); btn.innerHTML = originalText; });
-                     } else { msg.innerText = "Erro: Credenciais inválidas."; msg.classList.remove('hidden'); btn.innerHTML = originalText; }
-                } else { msg.innerText = "Erro: " + error.message; msg.classList.remove('hidden'); btn.innerHTML = originalText; }
+            if(useLocalStorage) {
+                const l = DB.leads.find(l => l.id === id);
+                if(l) { 
+                    Object.assign(l, data);
+                    // Sync PJ
+                    const trans = DB.pj.find(t => t.leadId === id);
+                    if(trans) { trans.valor = data.valor; trans.desc = `Contrato: ${data.nome}`; }
+                    saveLocal();
+                    renderizar();
+                }
+            } else {
+                await updateDoc(doc(db, 'users', currentUser.uid, 'leads', id), data);
+                const trans = DB.pj.find(t => t.leadId === id);
+                if(trans) {
+                    await updateDoc(doc(db, 'users', currentUser.uid, 'transacoes_pj', trans.id), {
+                        valor: data.valor,
+                        desc: `Contrato: ${data.nome} (${data.empresa || 'Cliente'})`
+                    });
+                }
+            }
+            document.getElementById('custom-input-box').remove();
+            window.mostrarToast('Atualizado!');
+        };
+
+        // --- EXPORT DB STATE FOR NON-MODULE FUNCTIONS ---
+        window.getDB = () => DB;
+    </script>
+
+    <!-- SCRIPT GERAL (NON-MODULE) -->
+    <script>
+        // --- SISTEMA DE VISIBILIDADE DE VALORES ---
+        let showValues = localStorage.getItem('gestor_show_values') !== 'false';
+
+        function togglePrivacy() {
+            showValues = !showValues;
+            localStorage.setItem('gestor_show_values', showValues);
+            updateEyeIcons();
+            renderizar();
+        }
+
+        function updateEyeIcons() {
+            const iconClass = showValues ? 'ph-eye' : 'ph-eye-slash';
+            const btnDesktop = document.getElementById('btn-eye-desktop');
+            if(btnDesktop) btnDesktop.innerHTML = `<i class="ph-bold ${iconClass} text-lg"></i>`;
+            const btnMobile = document.getElementById('btn-eye-mobile');
+            if(btnMobile) btnMobile.innerHTML = `<i class="ph-bold ${iconClass} text-xl"></i>`;
+        }
+
+        const formatMoney = (val) => {
+            if (!showValues) return 'R$ •••••';
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+        };
+
+        let chartInstancePJ = null;
+        let chartInstancePF = null;
+        const apiKey = "";
+
+        // --- SISTEMA DE LICENCIAMENTO ---
+        const SYSTEM_SECRET = "@uroraSystem@2024"; 
+
+        function checkLicense() {
+            if (typeof CryptoJS === 'undefined') { console.error("CryptoJS não carregado"); return; }
+            const license = JSON.parse(localStorage.getItem('gestor_license'));
+            if (!license) {
+                document.getElementById('license-overlay').classList.remove('hidden');
+                document.getElementById('app-content').classList.add('blur-content');
+            } else {
+                document.getElementById('license-overlay').classList.add('hidden');
+                document.getElementById('header-license-info').innerText = `Licenciado para: ${license.name}`;
+                document.getElementById('licensed-to').querySelector('span').innerText = license.name;
+                checkAuth();
+            }
+        }
+
+        function handleActivation(e) {
+            e.preventDefault();
+            if (typeof CryptoJS === 'undefined') { alert("Erro: Biblioteca de segurança offline. Recarregue."); return; }
+            const name = document.getElementById('lic-name').value.trim();
+            const key = document.getElementById('lic-key').value.trim();
+            if (!name || !key) return alert("Preencha todos os campos.");
+            const expectedKey = CryptoJS.HmacSHA256(name.toLowerCase(), SYSTEM_SECRET).toString().substring(0, 16).toUpperCase();
+            const formattedExpected = expectedKey.match(/.{1,4}/g).join('-');
+            if (key.toUpperCase() === formattedExpected) {
+                localStorage.setItem('gestor_license', JSON.stringify({ name: name, key: key, date: new Date().toISOString() }));
+                alert("Licença Ativada com Sucesso!");
+                location.reload();
+            } else {
+                alert("Chave inválida para este nome.");
+            }
+        }
+
+        // --- SISTEMA DE LOGIN LOCAL ---
+        let resetCounter = 0;
+        function triggerReset() {
+            resetCounter++;
+            if(resetCounter === 5) {
+                if(confirm("ATENÇÃO: Deseja resetar a senha mestre? Seus dados não serão perdidos.")) {
+                    localStorage.removeItem('gestor_auth');
+                    alert("Senha resetada! Crie uma nova.");
+                    location.reload();
+                }
+                resetCounter = 0;
+            }
+        }
+
+        function emergencyReset() {
+            if(confirm("Deseja apagar licença local?")) {
+                localStorage.removeItem('gestor_license');
+                localStorage.removeItem('gestor_auth');
+                location.reload();
+            }
+        }
+
+        function checkAuth() {
+            const savedHash = localStorage.getItem('gestor_auth');
+            const overlay = document.getElementById('login-overlay');
+            const app = document.getElementById('app-content');
+            
+            if (!savedHash) {
+                document.getElementById('login-title').innerText = "Crie sua Senha Mestre";
+                document.getElementById('confirm-pass-container').classList.remove('hidden');
+                document.getElementById('login-btn').innerText = "Criar Proteção";
+                initLoginAnimation();
+            } else {
+                document.getElementById('login-title').innerText = "Bem-vindo de volta";
+                document.getElementById('confirm-pass-container').classList.add('hidden');
+                document.getElementById('login-btn').innerText = "Acessar Sistema";
+                initLoginAnimation();
+            }
+            overlay.classList.remove('hidden');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            if (typeof CryptoJS === 'undefined') return;
+            const pass = document.getElementById('login-pass').value;
+            const confirm = document.getElementById('login-pass-confirm').value;
+            const savedHash = localStorage.getItem('gestor_auth');
+
+            if (!savedHash) {
+                if (pass.length < 4) { alert("Mínimo 4 caracteres."); return; }
+                if (pass !== confirm) { alert("Senhas não conferem."); return; }
+                const hash = CryptoJS.SHA256(pass).toString();
+                localStorage.setItem('gestor_auth', hash);
+                desbloquearApp();
+            } else {
+                const hashInput = CryptoJS.SHA256(pass).toString();
+                if (hashInput === savedHash) desbloquearApp();
+                else { alert("Senha incorreta."); document.getElementById('login-pass').value = ''; }
+            }
+        }
+
+        function desbloquearApp() {
+            const overlay = document.getElementById('login-overlay');
+            const app = document.getElementById('app-content');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => overlay.classList.add('hidden'), 500);
+            app.classList.remove('blur-content');
+            carregarPerfil(); 
+            updateEyeIcons();
+            // renderizar é chamado pelos listeners do firebase
+        }
+
+        function bloquearTela() {
+            const overlay = document.getElementById('login-overlay');
+            const app = document.getElementById('app-content');
+            overlay.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+            app.classList.add('blur-content');
+            document.getElementById('login-pass').value = '';
+            initLoginAnimation();
+        }
+
+        function togglePassVisibility() {
+            const input = document.getElementById('login-pass');
+            const icon = document.getElementById('eye-icon');
+            if (input.type === "password") { input.type = "text"; icon.classList.replace('ph-eye', 'ph-eye-slash'); }
+            else { input.type = "password"; icon.classList.replace('ph-eye-slash', 'ph-eye'); }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar.classList.contains('sidebar-closed')) {
+                sidebar.classList.remove('sidebar-closed');
+                sidebar.classList.add('sidebar-open');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            } else {
+                sidebar.classList.add('sidebar-closed');
+                sidebar.classList.remove('sidebar-open');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+
+        function carregarPerfil() {
+            // DB is now accessed via window.getDB() since it lives in the module
+            const DB = window.getDB ? window.getDB() : { profile: {} };
+            
+            if(DB.profile.company) document.getElementById('prof-company').value = DB.profile.company;
+            if(DB.profile.name) document.getElementById('prof-name').value = DB.profile.name;
+            if(DB.profile.email) document.getElementById('prof-email').value = DB.profile.email;
+            if(DB.profile.phone) document.getElementById('prof-phone').value = DB.profile.phone;
+            if(DB.profile.role) document.getElementById('prof-role').value = DB.profile.role;
+
+            if(DB.profile.name) document.getElementById('header-name').innerText = DB.profile.company || DB.profile.name;
+            if(DB.profile.image) atualizarAvatar(DB.profile.image);
+            
+            if(DB.profile.company) document.getElementById('display-company').innerText = DB.profile.company;
+            if(DB.profile.name) document.getElementById('display-name').innerText = DB.profile.name;
+        }
+
+        function atualizarAvatar(src) {
+            const headerAvatar = document.getElementById('header-avatar');
+            headerAvatar.innerHTML = `<img src="${src}" class="w-full h-full object-cover">`;
+            const preview = document.getElementById('profile-preview');
+            const placeholder = document.getElementById('profile-placeholder');
+            preview.src = src;
+            preview.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+        }
+
+        function getStoredKey() { return localStorage.getItem('gemini_api_key') || apiKey; }
+        function abrirConfig() { document.getElementById('input-api-key').value = localStorage.getItem('gemini_api_key') || ''; document.getElementById('modal-config').classList.remove('hidden'); }
+        function fecharConfig() { document.getElementById('modal-config').classList.add('hidden'); }
+        function salvarConfig() { const key = document.getElementById('input-api-key').value.trim(); if(key) localStorage.setItem('gemini_api_key', key); else localStorage.removeItem('gemini_api_key'); fecharConfig(); mostrarToast('Configurações salvas!'); }
+        function mostrarToast(msg) { const t = document.getElementById('toast'); t.innerHTML = `<div class="flex items-center gap-2"><i class="ph-fill ph-check-circle text-emerald-400"></i> ${msg}</div>`; t.classList.remove('hidden', 'translate-y-10', 'opacity-0'); setTimeout(() => { t.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => t.classList.add('hidden'), 300); }, 3000); }
+        function toggleDarkMode() { document.documentElement.classList.toggle('dark'); localStorage.setItem('gestor_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); renderizar(); }
+        if (localStorage.getItem('gestor_theme') === 'dark' || (!('gestor_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) { document.documentElement.classList.add('dark'); }
+
+        function mudarAba(aba) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${aba}`).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-blue-600', 'text-white', 'shadow-md');
+                btn.classList.add('text-slate-600', 'dark:text-slate-400', 'hover:bg-slate-50', 'dark:hover:bg-slate-800', 'hover:text-slate-900', 'dark:hover:text-white');
             });
-        });
+            const btn = document.getElementById(`btn-${aba}`);
+            btn.classList.remove('text-slate-600', 'dark:text-slate-400', 'hover:bg-slate-50', 'dark:hover:bg-slate-800', 'hover:text-slate-900', 'dark:hover:text-white');
+            btn.classList.add('active', 'bg-blue-600', 'text-white', 'shadow-md');
+            
+            if(window.innerWidth < 1280) {
+                const sidebar = document.getElementById('sidebar');
+                if(!sidebar.classList.contains('sidebar-closed')) toggleSidebar();
+            }
 
-        window.logout = () => { if(unsubLeads)unsubLeads(); if(unsubPJ)unsubPJ(); if(unsubPF)unsubPF(); if(unsubScripts)unsubScripts(); if(unsubNotas)unsubNotas(); signOut(auth); };
-
-        function iniciarListeners(uid) {
-            unsubLeads = onSnapshot(query(collection(db, "leads"), where("userId", "==", uid)), (snap) => { const l=[]; snap.forEach(d=>l.push({id:d.id, ...d.data()})); renderLeads(l); });
-            unsubPJ = onSnapshot(query(collection(db, "financeiro_pj"), where("userId", "==", uid)), (snap) => { const t=[]; snap.forEach(d=>t.push({id:d.id, ...d.data()})); cachePJ=t; renderFinanceiro(t,'pj'); calcularSaudeFinanceira(); });
-            unsubPF = onSnapshot(query(collection(db, "financeiro_pf"), where("userId", "==", uid)), (snap) => { const t=[]; snap.forEach(d=>t.push({id:d.id, ...d.data()})); renderFinanceiro(t,'pf'); });
-            unsubScripts = onSnapshot(query(collection(db, "scripts"), where("userId", "==", uid)), (snap) => { const s=[]; snap.forEach(d=>s.push({id:d.id, ...d.data()})); renderScripts(s); });
-            unsubNotas = onSnapshot(query(collection(db, "notas"), where("userId", "==", uid)), (snap) => { const n=[]; snap.forEach(d=>n.push({id:d.id, ...d.data()})); renderNotas(n); });
-            getDoc(doc(db,"profiles",uid)).then(d => { if(d.exists()){ const p=d.data(); document.getElementById('prof-company').value=p.company||''; document.getElementById('prof-name').value=p.name||''; document.getElementById('prof-email').value=p.email||''; }});
+            if(aba === 'perfil') carregarPerfil();
+            renderizar();
+            const main = document.getElementById('main-scroll-area'); if(main) main.scrollTop = 0;
         }
 
-        window.adicionarLead = async (e) => { e.preventDefault(); await addDoc(collection(db,"leads"),{userId:currentUser.uid,nome:document.getElementById('lead-nome').value,empresa:document.getElementById('lead-empresa').value,doc:document.getElementById('lead-doc').value,social:document.getElementById('lead-social').value,valor:parseFloat(document.getElementById('lead-valor').value)||0,status:'negociacao',createdAt:new Date()}); e.target.reset(); alert('Salvo!'); };
-        window.alterarStatusLead = async (id,st,val,nom) => { await updateDoc(doc(db,"leads",id),{status:st}); if(st==='ganho') await addDoc(collection(db,"financeiro_pj"),{userId:currentUser.uid,op:'entrada',desc:`Fechamento: ${nom}`,valor:val,data:new Date().toISOString().split('T')[0],leadId:id}); if(st!=='ganho'){ const q=query(collection(db,"financeiro_pj"),where("leadId","==",id)); const s=await getDocs(q); s.forEach(d=>deleteDoc(d.ref)); } };
-        window.adicionarTransacao = async (e,tipo) => { e.preventDefault(); const op=document.querySelector(`input[name="${tipo}-tipo"]:checked`).value; const desc=document.getElementById(`${tipo}-desc`).value; const val=parseFloat(document.getElementById(`${tipo}-valor`).value); const data=document.getElementById(`${tipo}-data`).value; const mod=document.getElementById(`${tipo}-modalidade`).value; const parc=parseInt(document.getElementById(`${tipo}-parcelas`)?.value)||1; const col=tipo==='pj'?'financeiro_pj':'financeiro_pf'; let loop=mod==='unico'?1:(mod==='parcelado'?parc:12); let dateObj=new Date(data); for(let i=0;i<loop;i++){ let curDesc=desc; if(mod==='parcelado') curDesc+=` (${i+1}/${loop})`; let newDate=new Date(dateObj); newDate.setMonth(newDate.getMonth()+i); await addDoc(collection(db,col),{userId:currentUser.uid,op,desc:curDesc,valor:val,data:newDate.toISOString().split('T')[0],modalidade:mod}); } e.target.reset(); alert('Salvo!'); };
-        window.adicionarScript = async (e) => { e.preventDefault(); await addDoc(collection(db,"scripts"),{userId:currentUser.uid,titulo:document.getElementById('script-titulo').value,texto:document.getElementById('script-texto').value}); e.target.reset(); alert('Salvo!'); };
-        window.adicionarNota = async (e) => { e.preventDefault(); await addDoc(collection(db,"notas"),{userId:currentUser.uid,numero:document.getElementById('nota-numero').value,cliente:document.getElementById('nota-cliente').value,valor:parseFloat(document.getElementById('nota-valor').value)||0,data:document.getElementById('nota-data').value,link:document.getElementById('nota-link').value}); e.target.reset(); alert('Salvo!'); };
-        window.excluirItem = async (col,id) => { if(confirm('Apagar?')) await deleteDoc(doc(db,col,id)); };
-        window.salvarPerfil = async (e) => { e.preventDefault(); await setDoc(doc(db,"profiles",currentUser.uid),{company:document.getElementById('prof-company').value,name:document.getElementById('prof-name').value,email:document.getElementById('prof-email').value},{merge:true}); alert('Salvo!'); };
-        window.toggleModalidade = (t) => { const v=document.getElementById(`${t}-modalidade`).value; const c=document.getElementById(`${t}-parcelas-container`); if(v==='unico')c.classList.add('hidden'); else c.classList.remove('hidden'); };
-        
-        // Renders
-        const formatMoney = (v) => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v);
-        function renderLeads(l) {
-            const list=document.getElementById('lista-leads'), ls=document.getElementById('lista-sem-retorno'), la=document.getElementById('lista-ativos-grid'), lc=document.getElementById('lista-contratos'), li=document.getElementById('lista-inativos');
-            [list,ls,la,lc,li].forEach(el=>el&&(el.innerHTML=''));
-            let pot=0, ati=0;
-            l.forEach(x => {
-                if(x.status==='negociacao') pot+=x.valor; if(x.status==='ganho') ati+=x.valor;
-                const card = `<div class="bg-slate-900 p-4 rounded border border-slate-800 mb-2 flex justify-between"><div><div class="font-bold text-white">${x.nome}</div><div class="text-sm text-slate-400">${x.empresa} - ${formatMoney(x.valor)}</div></div><div class="flex gap-2"><button onclick="alterarStatusLead('${x.id}','ganho',${x.valor},'${x.nome}')" class="text-emerald-500"><i class="ph-bold ph-check"></i></button><button onclick="alterarStatusLead('${x.id}','sem_retorno',0,'')" class="text-amber-500"><i class="ph-bold ph-clock"></i></button><button onclick="editarValorLead('${x.id}')" class="text-blue-500"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="excluirItem('leads','${x.id}')" class="text-slate-500"><i class="ph-bold ph-trash"></i></button></div></div>`;
-                if(x.status==='negociacao') list.innerHTML+=card;
-                if(x.status==='sem_retorno'&&ls) ls.innerHTML+=card.replace('text-amber-500','hidden');
-                if(x.status==='ganho'&&la) la.innerHTML+=`<div class="bg-slate-900 p-5 rounded border border-emerald-900"><div class="font-bold text-white">${x.nome}</div><div class="text-emerald-400">${formatMoney(x.valor)}</div><button onclick="alterarStatusLead('${x.id}','inativo',0,'')" class="text-xs bg-slate-800 mt-2 px-2 rounded">Desativar</button></div>`;
-                if(x.status==='ganho'&&lc) lc.innerHTML+=`<div class="bg-slate-900 p-5 rounded border border-slate-800"><div>${x.nome}</div><div class="text-xs text-slate-500">Contrato Ativo</div></div>`;
-                if((x.status==='perdido'||x.status==='inativo')&&li) li.innerHTML+=`<div class="bg-slate-900 p-4 rounded border border-slate-800 opacity-50 flex justify-between"><div>${x.nome}</div><button onclick="excluirItem('leads','${x.id}')"><i class="ph-bold ph-trash"></i></button></div>`;
+        // IA Functions needing non-module access
+        function gerarScriptIA() {
+            const assunto = document.getElementById('script-titulo').value;
+            if (!assunto) { mostrarToast('Digite um Título.'); return; }
+            const btn = document.getElementById('btn-gerar-script');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> ...';
+            btn.disabled = true;
+            const key = getStoredKey();
+            if (!key) { abrirConfig(); mostrarToast('Sem API Key.'); btn.innerHTML = originalText; btn.disabled = false; return; }
+            fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ contents: [{ parts: [{ text: `Escreva um script de mensagem curto e humanizado para: "${assunto}".` }] }] }) 
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) throw new Error(data.error.message);
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                const cleanText = text.replace(/\*\*/g, '').replace(/\*/g, '-').trim();
+                document.getElementById('script-texto').value = cleanText;
+                mostrarToast('Gerado!');
+            })
+            .catch(err => {
+                console.error(err);
+                mostrarToast('Erro na IA.');
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             });
-            document.getElementById('crm-potencial').innerText=formatMoney(pot); document.getElementById('crm-ativos').innerText=formatMoney(ati);
         }
-
-        function renderFinanceiro(data, tipo) {
-            const ent=data.filter(x=>x.op==='entrada').reduce((a,b)=>a+b.valor,0), sai=data.filter(x=>x.op==='saida').reduce((a,b)=>a+b.valor,0);
-            document.getElementById(`${tipo}-receita`).innerText=formatMoney(ent); document.getElementById(`${tipo}-despesa`).innerText=formatMoney(sai); document.getElementById(`${tipo}-saldo`).innerText=formatMoney(ent-sai);
-            const list=document.getElementById(`lista-transacoes-${tipo}`); list.innerHTML='';
-            data.sort((a,b)=>new Date(b.data)-new Date(a.data)).forEach(x=>{ list.innerHTML+=`<tr class="border-b border-slate-800"><td class="p-3 text-slate-300">${x.desc}<br><span class="text-xs text-slate-500">${x.data}</span></td><td class="p-3 text-right ${x.op==='entrada'?'text-emerald-400':'text-rose-400'}">${formatMoney(x.valor)}</td><td class="p-3 text-right"><button onclick="excluirItem('${tipo==='pj'?'financeiro_pj':'financeiro_pf'}','${x.id}')"><i class="ph-bold ph-trash"></i></button></td></tr>`; });
-            atualizarGrafico(tipo, ent, sai);
-        }
-
-        function renderScripts(d) { document.getElementById('lista-scripts').innerHTML = d.map(s=>`<div class="bg-slate-900 p-4 rounded border border-slate-800 mb-2"><h4 class="font-bold text-white">${s.titulo}</h4><p class="text-slate-400 text-sm whitespace-pre-wrap">${s.texto}</p><button onclick="excluirItem('scripts','${s.id}')" class="text-rose-500 text-xs mt-2">Excluir</button></div>`).join(''); }
-        function renderNotas(d) { document.getElementById('lista-notas').innerHTML = d.map(n=>`<div class="bg-slate-900 p-4 rounded border border-slate-800 mb-2 flex justify-between"><div><div class="font-bold text-white">#${n.numero} - ${n.cliente}</div><div class="text-xs text-slate-400">${formatMoney(n.valor)}</div></div><button onclick="excluirItem('notas','${n.id}')" class="text-rose-500"><i class="ph-bold ph-trash"></i></button></div>`).join(''); }
-        window.calcularSaudeFinanceira = () => { const ent=cachePJ.filter(x=>x.op==='entrada').reduce((a,b)=>a+b.valor,0), sai=cachePJ.filter(x=>x.op==='saida').reduce((a,b)=>a+b.valor,0), luc=ent-sai, perc=parseInt(document.getElementById('input-reserva').value)||20; const st=document.getElementById('label-saude-status'), br=document.getElementById('bar-saude-fill'); if(luc<=0){ st.innerText="Prejuízo"; st.className="text-rose-500"; br.className="h-full bg-rose-500 w-full"; document.getElementById('val-meu-salario').innerText="R$ 0,00"; } else { st.innerText="Positivo"; st.className="text-emerald-400"; br.className="h-full bg-emerald-500 w-full"; document.getElementById('val-meu-salario').innerText=formatMoney(luc * ((100-perc)/100)); } };
         
-        let chartInstancePJ=null, chartInstancePF=null;
-        function atualizarGrafico(t,e,s){ const ctx=document.getElementById(`grafico-${t}`)?.getContext('2d'); if(!ctx)return; if(t==='pj'&&chartInstancePJ)chartInstancePJ.destroy(); if(t==='pf'&&chartInstancePF)chartInstancePF.destroy(); const c=new Chart(ctx,{type:'bar',data:{labels:['Ent','Sai'],datasets:[{data:[e,s],backgroundColor:[t==='pj'?'#10b981':'#3b82f6', '#f43f5e']}]},options:{scales:{y:{beginAtZero:true, grid:{color:'#334155'}}}}}); if(t==='pj')chartInstancePJ=c; else chartInstancePF=c; }
+        function copiarScript(txt) { navigator.clipboard.writeText(txt); mostrarToast('Copiado!'); }
 
-        window.mudarAba=(a)=>{document.querySelectorAll('.view-section').forEach(e=>e.classList.add('hidden'));document.getElementById(`view-${a}`).classList.remove('hidden');};
-        window.toggleSidebar=()=>{document.getElementById('sidebar').classList.toggle('sidebar-closed');};
-        window.abrirConfig=()=>document.getElementById('modal-config').classList.remove('hidden'); window.salvarConfig=()=>{localStorage.setItem('gemini_api_key',document.getElementById('input-api-key').value);document.getElementById('modal-config').classList.add('hidden');alert('Salvo!');};
-        window.gerarScriptIA=()=>{ const k=localStorage.getItem('gemini_api_key'); if(!k) return abrirConfig(); fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${k}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:`Script de venda curto para: ${document.getElementById('script-titulo').value}`}]}]})}).then(r=>r.json()).then(d=>document.getElementById('script-texto').value=d.candidates[0].content.parts[0].text); };
-        window.fecharAI=()=>document.getElementById('modal-ai').classList.add('hidden'); window.copiarTextoAI=()=>{navigator.clipboard.writeText(document.getElementById('ai-content').innerText);alert('Copiado');};
-        window.togglePrivacy=()=>{/* Placeholder */};
-        
-        function initBackgroundAnimation() {
-            const cvs = document.getElementById('login-bg-canvas'); if(!cvs) return; const ctx = cvs.getContext('2d');
-            let w, h, p = []; const resize = () => { w = cvs.width = window.innerWidth; h = cvs.height = window.innerHeight; };
-            window.addEventListener('resize', resize); resize();
-            for(let i=0;i<60;i++)p.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5),vy:(Math.random()-.5)});
-            function anim() { ctx.clearRect(0,0,w,h); ctx.fillStyle='rgba(100,150,255,0.4)'; p.forEach(pt=>{pt.x+=pt.vx;pt.y+=pt.vy;if(pt.x<0||pt.x>w)pt.vx*=-1;if(pt.y<0||pt.y>h)pt.vy*=-1;ctx.beginPath();ctx.arc(pt.x,pt.y,2,0,Math.PI*2);ctx.fill()}); requestAnimationFrame(anim); }
-            anim();
+        // --- EDIT LEAD UI FUNCTION ---
+        function editarValorLead(id) {
+            const DB = window.getDB();
+            const l = DB.leads.find(lead => lead.id === id);
+            if(!l) return;
+            
+            const existing = document.getElementById('custom-input-box');
+            if(existing) existing.remove();
+
+            const box = document.createElement('div');
+            box.id = 'custom-input-box';
+            box.className = 'fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm fade-in';
+            box.innerHTML = `
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200 overflow-y-auto max-h-[90vh]">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4">Editar Lead</h3>
+                    <div class="space-y-3">
+                        <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Nome</label><input type="text" id="edit-nome" value="${l.nome}" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Empresa</label><input type="text" id="edit-empresa" value="${l.empresa || ''}" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">CPF/CNPJ</label><input type="text" id="edit-doc" value="${l.doc || ''}" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></div>
+                        </div>
+                        <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Social</label><input type="text" id="edit-social" value="${l.social || ''}" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Valor (R$)</label><input type="number" id="edit-valor" value="${l.valor}" step="0.01" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-bold text-blue-600"></div>
+                    </div>
+                    <div class="flex gap-2 mt-6">
+                        <button onclick="document.getElementById('custom-input-box').remove()" class="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Cancelar</button>
+                        <button onclick="window.confirmarEdicaoValor('${l.id}')" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors">Salvar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(box);
+            setTimeout(() => document.getElementById('edit-nome').focus(), 50);
         }
 
-        // Edição
-        window.editarValorLead = (id) => { getDoc(doc(db,"leads",id)).then(s=>{ if(s.exists()){ const l=s.data(); const b=document.createElement('div'); b.id='custom-input-box'; b.className='fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm'; b.innerHTML=`<div class="bg-slate-900 p-6 rounded-2xl border border-slate-700 w-full max-w-sm"><h3 class="text-white mb-4">Editar</h3><input id="ed-nome" value="${l.nome}" class="w-full mb-3 p-3 bg-slate-950 border border-slate-800 rounded text-white"><input id="ed-valor" value="${l.valor}" type="number" class="w-full mb-4 p-3 bg-slate-950 border border-slate-800 rounded text-white"><div class="flex gap-2"><button onclick="document.getElementById('custom-input-box').remove()" class="flex-1 py-2 bg-slate-800 text-slate-400 rounded">Cancelar</button><button onclick="confirmarEdicaoValor('${id}')" class="flex-1 py-2 bg-blue-600 text-white rounded">Salvar</button></div></div>`; document.body.appendChild(b); }}); };
-        window.confirmarEdicaoValor = async (id) => { const n=document.getElementById('ed-nome').value, v=parseFloat(document.getElementById('ed-valor').value); await updateDoc(doc(db,"leads",id),{nome:n,valor:v}); const q=query(collection(db,"financeiro_pj"),where("leadId","==",id)); const s=await getDocs(q); s.forEach(d=>updateDoc(d.ref,{valor:v,desc:`Fechamento: ${n}`})); document.getElementById('custom-input-box').remove(); alert('Atualizado!'); };
+        function toggleModalidade(tipo) {
+            const select = document.getElementById(`${tipo}-modalidade`);
+            const container = document.getElementById(`${tipo}-parcelas-container`);
+            const input = document.getElementById(`${tipo}-parcelas`);
+            const label = document.getElementById(`${tipo}-parcelas-label`);
+
+            if(select.value === 'unico') {
+                container.classList.add('hidden');
+                input.value = 1;
+            } else {
+                container.classList.remove('hidden');
+                if(select.value === 'recorrente') {
+                    label.innerText = 'Repetir (Meses)';
+                    input.value = 12; 
+                } else {
+                    label.innerText = 'Qtd Parcelas';
+                    input.value = 2; 
+                }
+            }
+        }
+        // attach to window for module access
+        window.toggleModalidade = toggleModalidade;
+
+        // --- RENDERIZADOR ---
+        function renderizar() {
+            const DB = window.getDB();
+            
+            const listaScriptsEl = document.getElementById('lista-scripts');
+            if(listaScriptsEl) {
+                listaScriptsEl.innerHTML = DB.scripts.length ? '' : '<div class="text-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-slate-400">Nenhum script salvo.</div>';
+                DB.scripts.forEach(s => {
+                    const textoSafe = s.texto.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    listaScriptsEl.innerHTML += `
+                        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-800 transition-colors">
+                            <div class="flex justify-between items-start mb-3">
+                                <h4 class="font-bold text-lg text-slate-800 dark:text-white">${s.titulo}</h4>
+                                <div class="flex gap-2">
+                                    <button onclick="copiarScript('${textoSafe}')" class="p-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50" title="Copiar"><i class="ph-bold ph-copy text-lg"></i></button>
+                                    <button onclick="window.excluirScript('${s.id}')" class="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" title="Excluir"><i class="ph-bold ph-trash text-lg"></i></button>
+                                </div>
+                            </div>
+                            <div class="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap font-mono leading-relaxed border border-slate-100 dark:border-slate-700">${s.texto}</div>
+                        </div>`;
+                });
+            }
+
+            renderCRM();
+            renderFinanceiro('pj');
+            renderFinanceiro('pf');
+            renderNotas();
+        }
+
+        function renderNotas() {
+            const DB = window.getDB();
+            const lista = document.getElementById('lista-notas'); if(!lista) return;
+            const total = DB.notas.filter(n => n.status !== 'cancelada').reduce((acc, n) => acc + n.valor, 0);
+            document.getElementById('total-notas').innerText = formatMoney(total);
+            lista.innerHTML = DB.notas.length ? '' : '<div class="text-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-slate-400">Nenhuma nota registrada.</div>';
+            DB.notas.forEach(n => {
+                let statusBadge = n.status === 'emitida' ? '<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold uppercase">Emitida</span>' : n.status === 'paga' ? '<span class="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs font-bold uppercase">Paga</span>' : '<span class="bg-rose-500 text-white px-2 py-0.5 rounded text-xs font-bold uppercase">Cancelada</span>';
+                const linkBtn = n.link ? `<a href="${n.link}" target="_blank" class="text-indigo-600 hover:underline text-xs font-bold flex items-center gap-1"><i class="ph-bold ph-link"></i> Ver Arquivo</a>` : '';
+                lista.innerHTML += `<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors"><div><div class="flex items-center gap-2 mb-1"><span class="font-mono text-sm text-slate-500 font-bold">#${n.numero}</span>${statusBadge}</div><div class="font-bold text-slate-800 dark:text-white text-lg">${n.cliente}</div><div class="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-3 mt-1"><span>${new Date(n.data).toLocaleDateString('pt-BR')}</span><span class="font-bold text-slate-700 dark:text-slate-300">${formatMoney(n.valor)}</span>${linkBtn}</div></div><div class="flex gap-2">${n.status !== 'paga' ? `<button onclick="window.alterarStatusNota('${n.id}', 'paga')" class="p-2 bg-emerald-500 text-white rounded hover:bg-emerald-600"><i class="ph-bold ph-check"></i></button>` : ''}${n.status !== 'cancelada' ? `<button onclick="window.alterarStatusNota('${n.id}', 'cancelada')" class="p-2 bg-rose-500 text-white rounded hover:bg-rose-600"><i class="ph-bold ph-prohibit"></i></button>` : ''}<button onclick="window.excluirNota('${n.id}')" class="p-2 text-slate-400 hover:text-red-500"><i class="ph-bold ph-trash"></i></button></div></div>`;
+            });
+        }
+
+        function renderCRM() {
+            const DB = window.getDB();
+            const createLeadCard = (l, btns) => {
+                let docHtml = l.doc ? `<span class="bg-slate-100 dark:bg-slate-700 px-1.5 rounded text-xs text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600">${l.doc}</span>` : '';
+                let socialHtml = l.social ? `<a href="${l.social}" target="_blank" class="text-pink-600 dark:text-pink-400 hover:underline flex items-center gap-1 text-xs font-bold" title="Abrir Rede Social"><i class="ph-bold ph-link"></i> Social</a>` : '';
+                let aiBtn = `<button onclick="alert('Funcionalidade em desenvolvimento')" class="p-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-200 transition-colors"><i class="ph-fill ph-sparkle text-lg"></i></button>`;
+                let editBtn = `<button onclick="editarValorLead('${l.id}')" class="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg" title="Editar Valor"><i class="ph-bold ph-pencil-simple text-lg"></i></button>`;
+                return `<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center shadow-sm gap-4 transition-colors"><div class="w-full sm:w-auto"><div class="flex items-center gap-2 mb-1 flex-wrap"><div class="font-bold text-slate-800 dark:text-white text-lg">${l.nome}</div></div><div class="text-sm text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-2"><span class="flex items-center gap-1"><i class="ph-fill ph-buildings"></i> ${l.empresa||'Empresa ñ informada'}</span>${docHtml}<span class="text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded">${formatMoney(l.valor)}</span></div></div><div class="flex gap-2 w-full sm:w-auto justify-end">${editBtn}${aiBtn}${btns}</div></div>`;
+            };
+            const listaLeadsEl = document.getElementById('lista-leads'); listaLeadsEl.innerHTML = '';
+            const groups = [{ id: 'negociacao', title: 'Em Negociação', statuses: ['negociacao'], color: 'text-blue-600', icon: 'ph-chats-circle' }, { id: 'sem_retorno', title: 'Aguardando Retorno', statuses: ['sem_retorno'], color: 'text-amber-600', icon: 'ph-clock' }, { id: 'ativos', title: 'Clientes Ativos', statuses: ['ganho'], color: 'text-emerald-600', icon: 'ph-check-circle' }, { id: 'inativos', title: 'Inativos / Perdidos', statuses: ['perdido', 'inativo'], color: 'text-slate-500', icon: 'ph-archive' }];
+            let temItens = false;
+            groups.forEach(group => {
+                const leads = DB.leads.filter(l => group.statuses.includes(l.status));
+                if(leads.length > 0) { temItens = true; listaLeadsEl.innerHTML += `<div class="mb-6"><div class="flex items-center gap-2 mb-3 border-b border-slate-100 dark:border-slate-800 pb-2"><i class="ph-bold ${group.icon} ${group.color} text-lg"></i><h4 class="font-bold text-sm uppercase text-slate-600 dark:text-slate-300 tracking-wide">${group.title}</h4><span class="bg-slate-100 dark:bg-slate-800 text-xs font-bold px-2 py-0.5 rounded-full text-slate-500">${leads.length}</span></div><div class="space-y-3"></div></div>`; 
+                const container = listaLeadsEl.lastElementChild.querySelector('.space-y-3');
+                leads.forEach(l => {
+                    let btns = `<button onclick="window.alterarStatusLead('${l.id}', 'ganho')" class="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600"><i class="ph-bold ph-check"></i></button><button onclick="window.alterarStatusLead('${l.id}', 'sem_retorno')" class="p-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"><i class="ph-bold ph-clock"></i></button><button onclick="window.alterarStatusLead('${l.id}', 'perdido')" class="p-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600"><i class="ph-bold ph-x"></i></button><button onclick="window.excluirLead('${l.id}')" class="p-2 text-slate-300 hover:text-red-500"><i class="ph-bold ph-trash"></i></button>`;
+                    if(group.id === 'ativos') btns = `<button onclick="window.alterarStatusLead('${l.id}', 'inativo')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded">Desativar</button>`;
+                    else if(group.id === 'inativos') btns = `<button onclick="window.alterarStatusLead('${l.id}', 'negociacao')" class="p-2 text-blue-500 rounded"><i class="ph-bold ph-arrow-u-up-left"></i></button><button onclick="window.excluirLead('${l.id}')" class="p-2 text-slate-300 hover:text-red-500"><i class="ph-bold ph-trash"></i></button>`;
+                    container.innerHTML += createLeadCard(l, btns);
+                });
+            }});
+            if (!temItens) listaLeadsEl.innerHTML = `<div class="text-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl"><p class="text-slate-400">Nenhum lead.</p></div>`;
+            
+            const neg = DB.leads.filter(l => l.status === 'negociacao'); const sem = DB.leads.filter(l => l.status === 'sem_retorno'); const ati = DB.leads.filter(l => l.status === 'ganho'); const ina = DB.leads.filter(l => ['perdido','inativo'].includes(l.status));
+            if(document.getElementById('crm-potencial')) { document.getElementById('crm-potencial').innerText = formatMoney(neg.reduce((a,l)=>a+l.valor,0)); document.getElementById('crm-count-negociacao').innerText = neg.length; document.getElementById('crm-sem-retorno').innerText = formatMoney(sem.reduce((a,l)=>a+l.valor,0)); document.getElementById('crm-count-sem-retorno').innerText = sem.length; document.getElementById('crm-ativos').innerText = formatMoney(ati.reduce((a,l)=>a+l.valor,0)); document.getElementById('crm-count-ativos').innerText = ati.length; document.getElementById('crm-inativos').innerText = formatMoney(ina.reduce((a,l)=>a+l.valor,0)); document.getElementById('crm-count-inativos').innerText = ina.length; document.getElementById('total-negociacao-list').innerText = formatMoney(DB.leads.reduce((a,l)=>a+l.valor,0)); document.getElementById('total-sem-retorno-tab').innerText = formatMoney(sem.reduce((a,l)=>a+l.valor,0)); document.getElementById('total-ativos-tab').innerText = formatMoney(ati.reduce((a,l)=>a+l.valor,0)); document.getElementById('total-inativos-tab').innerText = formatMoney(ina.reduce((a,l)=>a+l.valor,0)); }
+            
+            const listaSem = document.getElementById('lista-sem-retorno'); if(listaSem) { listaSem.innerHTML = ''; sem.forEach(l => listaSem.innerHTML += createLeadCard(l, `<button onclick="window.alterarStatusLead('${l.id}','negociacao')" class="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded">Retomar</button>`)); }
+            const listaAti = document.getElementById('lista-ativos-grid'); if(listaAti) { listaAti.innerHTML = ''; ati.forEach(l => { listaAti.innerHTML += `<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm relative"><div class="absolute top-4 right-4 bg-emerald-100 text-emerald-600 px-2 py-1 rounded text-xs font-bold uppercase">Ativo</div><div class="font-bold text-lg text-slate-800 dark:text-white mb-1">${l.nome}</div><div class="text-sm text-slate-500 dark:text-slate-400 mb-3">${l.empresa}</div><div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mb-4">${formatMoney(l.valor)}</div><div class="flex gap-2"><button onclick="window.alterarStatusLead('${l.id}', 'inativo')" class="flex-1 py-2 bg-slate-50 text-slate-600 rounded text-sm font-bold">Desativar</button></div></div>`; }); }
+            const listaIna = document.getElementById('lista-inativos'); if(listaIna) { listaIna.innerHTML = ''; ina.forEach(l => listaIna.innerHTML += createLeadCard(l, `<button onclick="window.alterarStatusLead('${l.id}','negociacao')" class="p-2 bg-blue-50 text-blue-600 rounded"><i class="ph-bold ph-arrow-u-up-left"></i></button><button onclick="window.excluirLead('${l.id}')" class="p-2 text-slate-300 hover:text-red-500"><i class="ph-bold ph-trash"></i></button>`)); }
+            
+            const listaCon = document.getElementById('lista-contratos'); 
+            if(listaCon) { 
+                listaCon.innerHTML = ''; 
+                ati.forEach(l => { 
+                    listaCon.innerHTML += `
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <div class="font-bold text-slate-800 dark:text-white text-lg">${l.nome}</div>
+                                <div class="text-sm text-slate-500">${l.empresa}</div>
+                            </div>
+                            <span class="text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded text-xs">${formatMoney(l.valor)}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Início</label>
+                                <input type="date" id="c-ini-${l.id}" value="${l.contrato_inicio||''}" class="w-full text-sm p-1.5 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Vencimento</label>
+                                <input type="date" id="c-fim-${l.id}" value="${l.contrato_fim||''}" class="w-full text-sm p-1.5 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Link</label>
+                            <input type="url" id="c-link-${l.id}" value="${l.contrato_link||''}" placeholder="https://..." class="w-full text-sm p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="window.salvarContrato('${l.id}')" class="flex-1 py-2 bg-slate-800 text-white rounded text-sm font-bold hover:bg-slate-900">Salvar</button>
+                            ${l.contrato_link ? `<a href="${l.contrato_link}" target="_blank" class="flex-1 py-2 bg-blue-50 text-blue-600 rounded text-sm font-bold text-center hover:bg-blue-100">Abrir</a>` : ''}
+                        </div>
+                    </div>`; 
+                }); 
+            }
+        }
+
+        function renderFinanceiro(tipo) {
+            const DB = window.getDB();
+            const lista = tipo === 'pj' ? DB.pj : DB.pf; 
+            const entradas = lista.filter(t => t.op === 'entrada').reduce((acc, t) => acc + t.valor, 0); 
+            const saidas = lista.filter(t => t.op === 'saida').reduce((acc, t) => acc + t.valor, 0); 
+            const saldo = entradas - saidas;
+            
+            document.getElementById(`${tipo}-receita`).innerText = formatMoney(entradas); 
+            document.getElementById(`${tipo}-despesa`).innerText = formatMoney(saidas);
+            
+            const elSaldo = document.getElementById(`${tipo}-saldo`); 
+            elSaldo.innerText = formatMoney(saldo); 
+            elSaldo.className = `text-2xl font-bold ${saldo >= 0 ? 'text-slate-700 dark:text-white' : 'text-rose-600 dark:text-rose-400'}`;
+            
+            const tabela = document.getElementById(`lista-transacoes-${tipo}`);
+            if(tabela) { 
+                tabela.innerHTML = lista.length ? '' : '<tr><td colspan="3" class="p-6 text-center text-slate-400">Nenhuma movimentação.</td></tr>'; 
+                // Ordenar por data (opcional, aqui assume ordem de chegada mas firebase envia desordenado se não tiver query. No código simples fazemos sort JS)
+                lista.sort((a,b) => b.createdAt - a.createdAt).forEach(t => { 
+                    const iconRecorrente = t.modalidade === 'recorrente' ? '<span class="ml-1 text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-500 px-1 rounded" title="Recorrente"><i class="ph-bold ph-arrows-clockwise"></i></span>' : '';
+                    
+                    tabela.innerHTML += `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 last:border-0 transition-colors">
+                        <td class="p-4 font-medium text-slate-700 dark:text-slate-300">
+                            ${t.desc}${iconRecorrente}
+                            <div class="text-xs text-slate-400 font-normal">${t.data}</div>
+                        </td>
+                        <td class="p-4 text-right font-mono font-medium ${t.op === 'entrada' ? 'text-emerald-600' : 'text-rose-600'}">
+                            ${t.op === 'entrada' ? '+' : '-'} ${formatMoney(t.valor)}
+                        </td>
+                        <td class="p-4 text-center w-10">
+                            <button onclick="window.excluirTransacao('${t.id}', '${tipo}')" class="text-slate-300 hover:text-rose-500"><i class="ph-bold ph-trash text-lg"></i></button>
+                        </td>
+                    </tr>`; 
+                }); 
+                atualizarGrafico(tipo, entradas, saidas); 
+            }
+
+            if (tipo === 'pj') {
+                const lucroLiquido = entradas - saidas;
+                const percentualReserva = DB.settings.reinvestRate || 20; 
+                let valorReserva = 0;
+                let valorSalario = 0;
+                let margemLucro = entradas > 0 ? (lucroLiquido / entradas) * 100 : 0;
+                
+                const elStatus = document.getElementById('label-saude-status');
+                const elMsg = document.getElementById('label-saude-msg');
+                const elBarFill = document.getElementById('bar-saude-fill');
+
+                if (lucroLiquido <= 0) {
+                    valorReserva = 0;
+                    valorSalario = 0;
+                    if(elStatus) {
+                        elStatus.innerText = "Prejuízo / Crítico";
+                        elStatus.className = "text-sm font-bold text-rose-600";
+                        elMsg.innerText = "As despesas superam as receitas. Corte gastos imediatamente.";
+                        elBarFill.className = "health-bar-fill h-full bg-rose-500 rounded-full";
+                        elBarFill.style.width = "100%"; 
+                    }
+                } else {
+                    valorReserva = lucroLiquido * (percentualReserva / 100);
+                    valorSalario = lucroLiquido - valorReserva;
+                    let colorClass = "bg-emerald-500";
+                    let textClass = "text-emerald-600";
+                    let statusText = "Excelente";
+                    let msgText = "Margem saudável. Ótimo momento para reinvestir.";
+                    let widthPercent = Math.min(Math.max(margemLucro * 2, 10), 100); 
+
+                    if (margemLucro < 10) {
+                        colorClass = "bg-amber-500";
+                        textClass = "text-amber-600";
+                        statusText = "Alerta";
+                        msgText = "Margem baixa (<10%). Cuidado com imprevistos.";
+                    } else if (margemLucro < 30) {
+                        colorClass = "bg-blue-500";
+                        textClass = "text-blue-600";
+                        statusText = "Estável";
+                        msgText = "Margem aceitável. Continue otimizando.";
+                    }
+
+                    if(elStatus) {
+                        elStatus.innerText = `${statusText} (${margemLucro.toFixed(1)}%)`;
+                        elStatus.className = `text-sm font-bold ${textClass}`;
+                        elMsg.innerText = msgText;
+                        elBarFill.className = `health-bar-fill h-full ${colorClass} rounded-full`;
+                        elBarFill.style.width = `${widthPercent}%`;
+                    }
+                }
+                const elReserva = document.getElementById('val-reserva-empresa');
+                const elSalario = document.getElementById('val-meu-salario');
+                if(elReserva) elReserva.innerText = formatMoney(valorReserva);
+                if(elSalario) elSalario.innerText = formatMoney(valorSalario);
+            }
+        }
+
+        function atualizarGrafico(tipo, entradas, saidas) {
+            const canvas = document.getElementById(`grafico-${tipo}`); if(!canvas) return; const ctx = canvas.getContext('2d'); const colorEntrada = tipo === 'pj' ? '#10b981' : '#3b82f6'; const colorSaida = tipo === 'pj' ? '#f43f5e' : '#f97316'; const isDark = document.documentElement.classList.contains('dark'); const textColor = isDark ? '#94a3b8' : '#64748b';
+            const data = { labels: ['Entradas', 'Saídas'], datasets: [{ data: [entradas, saidas], backgroundColor: [colorEntrada, colorSaida], borderRadius: 6, borderWidth: 0, barThickness: 40 }] };
+            const config = { type: 'bar', data: data, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e293b' : '#fff', titleColor: isDark ? '#fff' : '#1e293b', bodyColor: isDark ? '#cbd5e1' : '#475569', borderColor: isDark ? '#334155' : '#e2e8f0', borderWidth: 1, padding: 10, displayColors: false, callbacks: { label: (c) => formatMoney(c.raw) } } }, scales: { y: { beginAtZero: true, grid: { display: false }, ticks: { color: textColor } }, x: { grid: { display: false }, ticks: { color: textColor } } } } };
+            if (tipo === 'pj') { if (chartInstancePJ) chartInstancePJ.destroy(); chartInstancePJ = new Chart(ctx, config); } else { if (chartInstancePF) chartInstancePF.destroy(); chartInstancePF = new Chart(ctx, config); }
+        }
+
+        function initLoginAnimation() {
+            const canvas = document.getElementById('login-bg-canvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+            let mouse = { x: null, y: null, radius: 250 }; 
+
+            window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+            window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
+
+            const particleCount = 80; 
+            const connectionDistance = 150; 
+            const moveSpeed = 0.5;
+
+            function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width; this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * moveSpeed; this.vy = (Math.random() - 0.5) * moveSpeed;
+                    this.size = Math.random() * 2 + 1; 
+                    this.color = Math.random() > 0.5 ? 'rgba(100, 200, 255, ' : 'rgba(180, 100, 255, '; 
+                }
+                update() {
+                    this.x += this.vx; this.y += this.vy;
+                    if(this.x < 0 || this.x > width) this.vx *= -1;
+                    if(this.y < 0 || this.y > height) this.vy *= -1;
+                }
+                draw() {
+                    ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color + '0.8)'; ctx.fill();
+                }
+            }
+
+            function init() { particles = []; for(let i=0; i<particleCount; i++) particles.push(new Particle()); }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                if (mouse.x != null) {
+                    const gradient = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, mouse.radius);
+                    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.15)'); gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(mouse.x, mouse.y, mouse.radius, 0, Math.PI * 2); ctx.fill();
+                }
+                for(let i=0; i<particles.length; i++) {
+                    particles[i].update(); particles[i].draw();
+                    if (mouse.x != null) {
+                        const dx = particles[i].x - mouse.x; const dy = particles[i].y - mouse.y; const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < 200) { ctx.beginPath(); ctx.strokeStyle = `rgba(147, 197, 253, ${1 - dist/200})`; ctx.lineWidth = 1; ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke(); }
+                    }
+                    for(let j=i+1; j<particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x; const dy = particles[i].y - particles[j].y; const dist = Math.sqrt(dx*dx + dy*dy);
+                        if(dist < connectionDistance) {
+                            const opacity = 1 - (dist / connectionDistance);
+                            ctx.beginPath(); ctx.strokeStyle = `rgba(100, 116, 139, ${opacity * 0.3})`; ctx.lineWidth = 1; ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(animate);
+            }
+            window.addEventListener('resize', () => { resize(); init(); });
+            resize(); init(); animate();
+        }
+
+        checkLicense(); 
     </script>
 </body>
 </html>
