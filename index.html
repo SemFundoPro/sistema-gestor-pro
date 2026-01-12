@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor Pro - Cliente (Online)</title>
+    <title>Gestor Pro - Cliente (Híbrido)</title>
     
     <!-- === BLINDAGEM MÁXIMA === -->
     <script>
@@ -50,6 +50,21 @@
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 h-screen w-screen overflow-hidden flex" id="body-container">
 
+    <!-- INITIAL STATE SETUP -->
+    <script>
+        // Setup Global DB immediately to avoid race conditions
+        window.DB = {
+            leads: JSON.parse(localStorage.getItem('gestor_leads')) || [],
+            scripts: JSON.parse(localStorage.getItem('gestor_scripts')) || [],
+            notas: JSON.parse(localStorage.getItem('gestor_notas')) || [],
+            pj: JSON.parse(localStorage.getItem('gestor_pj')) || [],
+            pf: JSON.parse(localStorage.getItem('gestor_pf')) || [],
+            profile: JSON.parse(localStorage.getItem('gestor_profile')) || {},
+            settings: JSON.parse(localStorage.getItem('gestor_settings')) || { reinvestRate: 20 }
+        };
+        window.isOnline = false;
+    </script>
+
     <!-- LOADING OVERLAY -->
     <div id="cloud-loading" class="hidden fixed inset-0 z-[400] bg-black/80 flex flex-col items-center justify-center text-white backdrop-blur-md">
         <i class="ph-bold ph-cloud-arrow-up text-4xl animate-bounce mb-4 text-blue-500"></i>
@@ -88,12 +103,6 @@
     <div id="login-overlay" class="hidden fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-4 transition-opacity duration-500 overflow-hidden">
         <canvas id="login-bg-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
         <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-950/80 pointer-events-none z-0"></div>
-        <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
-            <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-[100px] opacity-50 animate-blob"></div>
-            <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-blue-600 rounded-full mix-blend-screen filter blur-[100px] opacity-50 animate-blob animation-delay-2000"></div>
-            <div class="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-screen filter blur-[100px] opacity-50 animate-blob animation-delay-4000"></div>
-        </div>
-
         <div class="relative w-full max-w-sm bg-white/5 dark:bg-slate-900/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/10 p-10 text-center animate-in zoom-in-95 duration-500 ring-1 ring-white/10 z-10">
             <div class="mb-8 flex justify-center">
                 <div onclick="triggerReset()" class="relative group cursor-pointer select-none" title="Clique 5x para resetar">
@@ -103,39 +112,13 @@
                     </div>
                 </div>
             </div>
-
             <h2 id="login-title" class="text-3xl font-bold text-white mb-2 tracking-tight drop-shadow-md">Gestor Pro</h2>
-            
-            <div id="licensed-to" class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 flex justify-center gap-1">
-                <span class="hidden">Licenciado para:</span> <span>...</span>
-            </div>
+            <div id="licensed-to" class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 flex justify-center gap-1"><span class="hidden">Licenciado para:</span> <span>...</span></div>
             <div id="days-remaining" class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-8"></div>
-
             <form onsubmit="handleLogin(event)" class="space-y-5 text-left">
-                <div>
-                    <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="ph-bold ph-lock-key text-slate-400 group-focus-within:text-blue-400 transition-colors"></i>
-                        </div>
-                        <input type="password" id="login-pass" placeholder="Senha de Acesso" class="w-full py-4 pl-12 pr-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm">
-                        <button type="button" onclick="togglePassVisibility()" class="absolute right-4 top-4 text-slate-400 hover:text-blue-400 cursor-pointer transition-colors">
-                            <i id="eye-icon" class="ph-bold ph-eye text-xl"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <div id="confirm-pass-container" class="hidden">
-                    <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="ph-bold ph-shield-check text-slate-400 group-focus-within:text-blue-400 transition-colors"></i>
-                        </div>
-                        <input type="password" id="login-pass-confirm" placeholder="Confirmar Senha" class="w-full py-4 pl-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm">
-                    </div>
-                </div>
-
-                <button type="submit" id="login-btn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 transition-all transform active:scale-[0.98] border border-white/10">
-                    Entrar
-                </button>
+                <div><div class="relative group"><div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-lock-key text-slate-400 group-focus-within:text-blue-400 transition-colors"></i></div><input type="password" id="login-pass" placeholder="Senha de Acesso" class="w-full py-4 pl-12 pr-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm"><button type="button" onclick="togglePassVisibility()" class="absolute right-4 top-4 text-slate-400 hover:text-blue-400 cursor-pointer transition-colors"><i id="eye-icon" class="ph-bold ph-eye text-xl"></i></button></div></div>
+                <div id="confirm-pass-container" class="hidden"><div class="relative group"><div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-shield-check text-slate-400 group-focus-within:text-blue-400 transition-colors"></i></div><input type="password" id="login-pass-confirm" placeholder="Confirmar Senha" class="w-full py-4 pl-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm"></div></div>
+                <button type="submit" id="login-btn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 transition-all transform active:scale-[0.98] border border-white/10">Entrar</button>
             </form>
             <p id="connection-status" class="mt-8 text-[10px] text-slate-500 uppercase opacity-60 flex items-center justify-center gap-1"><i class="ph-fill ph-wifi-slash"></i> Modo Offline</p>
         </div>
@@ -143,7 +126,6 @@
 
     <!-- ESTRUTURA PRINCIPAL (APP) -->
     <div id="app-content" class="flex flex-row h-full w-full blur-content transition-all duration-500 overflow-hidden absolute inset-0">
-        
         <!-- SIDEBAR -->
         <aside id="sidebar" class="absolute xl:relative z-50 w-72 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl xl:shadow-none flex-shrink-0 transform transition-transform duration-300 xl:translate-x-0 -translate-x-full">
             <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 shrink-0">
@@ -151,7 +133,6 @@
                 <div class="overflow-hidden"><h1 class="text-lg font-bold leading-none tracking-tight truncate text-slate-800 dark:text-white" id="header-name">Gestor Pro</h1><p id="header-license-info" class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1 uppercase tracking-wider truncate">Ativo</p></div>
                 <button onclick="toggleSidebar()" class="xl:hidden ml-auto text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-
             <nav class="flex-1 overflow-y-auto p-4 space-y-1.5 custom-scrollbar">
                 <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-2">Menu Principal</div>
                 <button onclick="mudarAba('crm')" id="btn-crm" class="tab-btn w-full active px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-3 bg-blue-600 text-white shadow-md text-left"><i class="ph-bold ph-users text-lg"></i> Prospecção</button>
@@ -166,7 +147,6 @@
                 <button onclick="mudarAba('financeiro')" id="btn-financeiro" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-briefcase text-lg"></i> Empresa</button>
                 <button onclick="mudarAba('pessoal')" id="btn-pessoal" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-house text-lg"></i> Pessoal</button>
             </nav>
-
             <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 shrink-0">
                 <button onclick="mudarAba('perfil')" id="btn-perfil" class="tab-btn w-full mb-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm flex items-center gap-3 border border-transparent hover:border-slate-200 dark:hover:border-slate-700"><i class="ph-bold ph-user-gear text-lg"></i> Meu Perfil</button>
                 <div class="flex items-center justify-between gap-2">
@@ -177,213 +157,84 @@
                 </div>
             </div>
         </aside>
-
-        <!-- Overlay -->
         <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden xl:hidden backdrop-blur-sm transition-opacity"></div>
 
         <!-- ÁREA DIREITA -->
         <div class="flex-1 flex flex-col h-full min-w-0 bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
-            <!-- Header Mobile -->
             <header class="xl:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0 z-30 px-4 py-3 flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-3"><button onclick="toggleSidebar()" class="p-2 -ml-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"><i class="ph-bold ph-list text-2xl"></i></button><span class="font-bold text-lg text-slate-800 dark:text-white">Gestor Pro</span></div>
-                <div class="flex gap-2">
-                    <button onclick="togglePrivacy()" id="btn-eye-mobile" class="p-2 text-slate-500 dark:text-slate-400"><i class="ph-bold ph-eye text-xl"></i></button>
-                    <button onclick="toggleDarkMode()" class="p-2 text-slate-500 dark:text-slate-400"><i class="ph-fill ph-moon text-xl"></i></button>
-                </div>
+                <div class="flex gap-2"><button onclick="togglePrivacy()" id="btn-eye-mobile" class="p-2 text-slate-500 dark:text-slate-400"><i class="ph-bold ph-eye text-xl"></i></button><button onclick="toggleDarkMode()" class="p-2 text-slate-500 dark:text-slate-400"><i class="ph-fill ph-moon text-xl"></i></button></div>
             </header>
 
             <main class="flex-1 overflow-y-auto scroll-smooth relative" id="main-scroll-area">
                 <div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-lg shadow-xl z-[300] font-medium transform transition-all duration-300 translate-y-10 opacity-0"></div>
 
-                <!-- VIEW CRM -->
+                <!-- VIEWS COMPLETA (Visual) -->
+                <!-- CRM -->
                 <div id="view-crm" class="view-section fade-in">
                     <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all w-full">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group"><div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="ph-fill ph-trend-up text-6xl text-blue-600"></i></div><p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Em Negociação</p><h3 class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1" id="crm-potencial">R$ 0,00</h3><div class="mt-2 text-xs font-medium text-slate-400"><span id="crm-count-negociacao">0</span> leads</div></div>
                             <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border-l-4 border-amber-400 shadow-sm dark:border-slate-800 relative overflow-hidden"><div class="flex justify-between items-start"><div><p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Sem Retorno</p><h3 class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1" id="crm-sem-retorno">R$ 0,00</h3></div><div class="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-lg text-amber-600 dark:text-amber-400"><i class="ph-bold ph-clock text-xl"></i></div></div><p class="text-xs text-slate-400 mt-2"><span id="crm-count-sem-retorno">0</span> aguardando</p></div>
-                            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border-l-4 border-emerald-500 shadow-sm dark:border-slate-800"><div class="flex justify-between items-start"><div><p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Em Carteira (Ativos)</p><h3 class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1" id="crm-ativos">R$ 0,00</h3></div><div class="bg-emerald-100 dark:bg-emerald-900/30 p-1.5 rounded-lg text-emerald-600 dark:text-emerald-400"><i class="ph-bold ph-wallet text-xl"></i></div></div><p class="text-xs text-slate-400 mt-2"><span id="crm-count-ativos">0</span> fechados</p></div>
-                            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border-l-4 border-slate-400 shadow-sm dark:border-slate-800"><div class="flex justify-between items-start"><div><p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Perdidos / Inativos</p><h3 class="text-2xl font-bold text-slate-600 dark:text-slate-300 mt-1" id="crm-inativos">R$ 0,00</h3></div><div class="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-lg text-slate-500 dark:text-slate-400"><i class="ph-bold ph-prohibit text-xl"></i></div></div><p class="text-xs text-slate-400 mt-2"><span id="crm-count-inativos">0</span> cancelados</p></div>
+                            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border-l-4 border-emerald-500 shadow-sm dark:border-slate-800"><div class="flex justify-between items-start"><div><p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Ativos</p><h3 class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1" id="crm-ativos">R$ 0,00</h3></div><div class="bg-emerald-100 dark:bg-emerald-900/30 p-1.5 rounded-lg text-emerald-600 dark:text-emerald-400"><i class="ph-bold ph-wallet text-xl"></i></div></div><p class="text-xs text-slate-400 mt-2"><span id="crm-count-ativos">0</span> fechados</p></div>
+                            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border-l-4 border-slate-400 shadow-sm dark:border-slate-800"><div class="flex justify-between items-start"><div><p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Perdidos</p><h3 class="text-2xl font-bold text-slate-600 dark:text-slate-300 mt-1" id="crm-inativos">R$ 0,00</h3></div><div class="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-lg text-slate-500 dark:text-slate-400"><i class="ph-bold ph-prohibit text-xl"></i></div></div><p class="text-xs text-slate-400 mt-2"><span id="crm-count-inativos">0</span> cancelados</p></div>
                         </div>
                     </div>
-
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 py-6">
                         <div class="lg:col-span-1">
                             <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 sticky top-48">
                                 <h3 class="font-bold text-lg mb-5 flex items-center gap-2 text-slate-800 dark:text-white"><span class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-1.5 rounded-lg"><i class="ph-bold ph-plus"></i></span> Novo Lead</h3>
                                 <form onsubmit="window.adicionarLead(event)" class="space-y-4">
-                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Nome do Cliente *</label><input type="text" id="lead-nome" placeholder="Ex: João Silva" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div>
-                                    <div class="grid grid-cols-2 gap-3"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Empresa</label><input type="text" id="lead-empresa" placeholder="Nome Fantasia" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">CPF / CNPJ</label><input type="text" id="lead-doc" placeholder="000.000..." class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"></div></div>
-                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Rede Social (Link)</label><div class="relative"><div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="ph-bold ph-link text-slate-400"></i></div><input type="text" id="lead-social" placeholder="instagram.com/cliente" class="w-full pl-10 p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"></div></div>
-                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Valor Estimado (R$)</label><input type="number" id="lead-valor" placeholder="0,00" step="0.01" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div>
-                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg shadow-blue-600/20 flex justify-center items-center gap-2"><i class="ph-bold ph-floppy-disk"></i> Cadastrar Lead</button>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Nome *</label><input type="text" id="lead-nome" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                                    <div class="grid grid-cols-2 gap-3"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Empresa</label><input type="text" id="lead-empresa" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">CPF / CNPJ</label><input type="text" id="lead-doc" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></div></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Social</label><input type="text" id="lead-social" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Valor (R$)</label><input type="number" id="lead-valor" step="0.01" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg flex justify-center items-center gap-2"><i class="ph-bold ph-floppy-disk"></i> Salvar</button>
                                 </form>
                             </div>
                         </div>
                         <div class="lg:col-span-2 space-y-4">
-                            <div class="sticky top-48 z-30 bg-slate-50 dark:bg-slate-950 py-2 flex justify-between items-center mb-2">
-                                <h3 class="font-bold text-lg text-slate-700 dark:text-white">Pipeline Organizado</h3>
-                                <div class="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 px-3 py-1 rounded-lg text-sm font-bold border border-blue-100 dark:border-blue-800">Total Geral: <span id="total-negociacao-list">R$ 0,00</span></div>
-                            </div>
+                            <div class="sticky top-48 z-30 bg-slate-50 dark:bg-slate-950 py-2 flex justify-between items-center mb-2"><h3 class="font-bold text-lg text-slate-700 dark:text-white">Pipeline</h3><div class="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 px-3 py-1 rounded-lg text-sm font-bold border border-blue-100 dark:border-blue-800">Total: <span id="total-negociacao-list">R$ 0,00</span></div></div>
                             <div id="lista-leads" class="space-y-6"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- VIEW SCRIPTS -->
+                <!-- SCRIPTS -->
                 <div id="view-scripts" class="view-section hidden fade-in px-4 md:px-8 py-6">
-                    <h3 class="font-bold text-lg text-slate-700 dark:text-white mb-6 flex items-center gap-2"><i class="ph-fill ph-chat-text text-indigo-500"></i> Scripts de Vendas</h3>
+                    <h3 class="font-bold text-lg text-slate-700 dark:text-white mb-6 flex items-center gap-2"><i class="ph-fill ph-chat-text text-indigo-500"></i> Scripts</h3>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-1"><div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 sticky top-4"><h4 class="font-bold text-base mb-4 text-slate-800 dark:text-white">Adicionar Novo Script</h4><form onsubmit="window.adicionarScript(event)" class="space-y-4"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Título / Assunto</label><input type="text" id="script-titulo" placeholder="Ex: Apresentação Fria LinkedIn" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Mensagem</label><div class="flex justify-between items-center mb-1"><button type="button" id="btn-gerar-script" onclick="window.gerarScriptIA()" class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded flex items-center gap-1 font-bold hover:bg-purple-200 transition-colors"><i class="ph-bold ph-sparkle"></i> Gerar com IA</button></div><textarea id="script-texto" rows="6" placeholder="Olá {nome}, vi seu perfil e..." required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></textarea></div><button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-600/20 flex justify-center items-center gap-2"><i class="ph-bold ph-plus-circle"></i> Salvar Script</button></form></div></div>
+                        <div class="lg:col-span-1"><div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 sticky top-4"><h4 class="font-bold text-base mb-4 text-slate-800 dark:text-white">Novo Script</h4><form onsubmit="window.adicionarScript(event)" class="space-y-4"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Título</label><input type="text" id="script-titulo" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Texto</label><div class="flex justify-between items-center mb-1"><button type="button" id="btn-gerar-script" onclick="window.gerarScriptIA()" class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded flex items-center gap-1 font-bold hover:bg-purple-200"><i class="ph-bold ph-sparkle"></i> Gerar IA</button></div><textarea id="script-texto" rows="6" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea></div><button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold shadow-lg">Salvar</button></form></div></div>
                         <div class="lg:col-span-2"><div id="lista-scripts" class="space-y-4 grid grid-cols-1 gap-4"></div></div>
                     </div>
                 </div>
 
-                <!-- VIEW SEM RETORNO -->
-                <div id="view-sem_retorno" class="view-section hidden fade-in px-4 md:px-8 py-6">
-                    <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg text-slate-700 dark:text-white flex items-center gap-2"><i class="ph-fill ph-clock text-amber-500"></i> Leads Sem Retorno</h3><div class="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 px-3 py-1 rounded-lg text-sm font-bold border border-amber-100 dark:border-amber-800">Total: <span id="total-sem-retorno-tab">R$ 0,00</span></div></div><div id="lista-sem-retorno" class="space-y-3"></div>
-                </div>
-
-                <!-- VIEW ATIVOS -->
-                <div id="view-ativos" class="view-section hidden fade-in px-4 md:px-8 py-6">
-                    <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg text-slate-700 dark:text-white flex items-center gap-2"><i class="ph-fill ph-check-circle text-emerald-500"></i> Carteira de Clientes Ativos</h3><div class="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 px-3 py-1 rounded-lg text-sm font-bold border border-emerald-100 dark:border-emerald-800">Total: <span id="total-ativos-tab">R$ 0,00</span></div></div><div id="lista-ativos-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-                </div>
-
-                <!-- VIEW CONTRATOS -->
-                <div id="view-contratos" class="view-section hidden fade-in px-4 md:px-8 py-6">
-                    <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-lg text-slate-700 dark:text-white flex items-center gap-2"><i class="ph-fill ph-file-text text-purple-500"></i> Gestão de Contratos (Ativos)</h3><div class="text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full flex items-center gap-1"><i class="ph-bold ph-info"></i> Anexe links do Drive/Cloud</div></div><div id="lista-contratos" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-                </div>
-                
-                <!-- VIEW NOTAS FISCAIS -->
+                <!-- NOTAS -->
                 <div id="view-notas" class="view-section hidden fade-in px-4 md:px-8 py-6">
-                    <h3 class="font-bold text-lg text-slate-700 dark:text-white mb-6 flex items-center gap-2"><i class="ph-fill ph-receipt text-indigo-500"></i> Gestão de Notas Fiscais</h3>
+                    <h3 class="font-bold text-lg text-slate-700 dark:text-white mb-6 flex items-center gap-2"><i class="ph-fill ph-receipt text-indigo-500"></i> Notas Fiscais</h3>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-1"><div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 sticky top-4"><h4 class="font-bold text-base mb-4 text-slate-800 dark:text-white">Registrar Nova Nota</h4><form onsubmit="window.adicionarNota(event)" class="space-y-4"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Número da Nota</label><input type="text" id="nota-numero" placeholder="Ex: 001/2024" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Cliente</label><input type="text" id="nota-cliente" placeholder="Nome do Cliente" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></div><div class="grid grid-cols-2 gap-3"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Valor (R$)</label><input type="number" id="nota-valor" step="0.01" placeholder="0,00" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Data Emissão</label><input type="date" id="nota-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></div></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Link do Arquivo (Drive/Cloud)</label><input type="url" id="nota-link" placeholder="https://..." class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"></div><button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-600/20 flex justify-center items-center gap-2"><i class="ph-bold ph-plus-circle"></i> Salvar Nota</button></form></div></div>
-                        <div class="lg:col-span-2"><div class="flex justify-between items-center mb-2"><h4 class="font-bold text-base text-slate-700 dark:text-slate-300">Histórico de Notas</h4><div class="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded-lg text-sm font-bold border border-indigo-100 dark:border-indigo-800">Total Emitido: <span id="total-notas">R$ 0,00</span></div></div><div id="lista-notas" class="space-y-3"></div></div>
+                        <div class="lg:col-span-1"><div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 sticky top-4"><h4 class="font-bold text-base mb-4 text-slate-800 dark:text-white">Nova Nota</h4><form onsubmit="window.adicionarNota(event)" class="space-y-4"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Número</label><input type="text" id="nota-numero" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Cliente</label><input type="text" id="nota-cliente" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></div><div class="grid grid-cols-2 gap-3"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Valor</label><input type="number" id="nota-valor" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Data</label><input type="date" id="nota-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></div></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Link</label><input type="url" id="nota-link" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></div><button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold shadow-lg">Salvar</button></form></div></div>
+                        <div class="lg:col-span-2"><div class="flex justify-between items-center mb-2"><h4 class="font-bold text-base text-slate-700 dark:text-slate-300">Histórico</h4><div class="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded-lg text-sm font-bold border border-indigo-100 dark:border-indigo-800">Total: <span id="total-notas">R$ 0,00</span></div></div><div id="lista-notas" class="space-y-3"></div></div>
                     </div>
                 </div>
 
-                <!-- VIEW INATIVOS -->
-                <div id="view-inativos" class="view-section hidden fade-in px-4 md:px-8 py-6"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg text-slate-700 dark:text-white flex items-center gap-2"><i class="ph-fill ph-user-minus text-slate-500"></i> Clientes Inativos ou Perdidos</h3><div class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-lg text-sm font-bold border border-slate-200 dark:border-slate-700">Total: <span id="total-inativos-tab">R$ 0,00</span></div></div><div id="lista-inativos" class="space-y-3"></div></div>
+                <!-- OUTRAS VIEWS (Simples) -->
+                <div id="view-sem_retorno" class="view-section hidden fade-in px-4 md:px-8 py-6"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg text-slate-700 dark:text-white flex items-center gap-2"><i class="ph-fill ph-clock text-amber-500"></i> Sem Retorno</h3></div><div id="lista-sem-retorno" class="space-y-3"></div></div>
+                <div id="view-ativos" class="view-section hidden fade-in px-4 md:px-8 py-6"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg text-slate-700 dark:text-white flex items-center gap-2"><i class="ph-fill ph-check-circle text-emerald-500"></i> Ativos</h3></div><div id="lista-ativos-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+                <div id="view-contratos" class="view-section hidden fade-in px-4 md:px-8 py-6"><div class="flex justify-between items-center mb-6"><h3 class="font-bold text-lg text-slate-700 dark:text-white flex items-center gap-2"><i class="ph-fill ph-file-text text-purple-500"></i> Contratos</h3></div><div id="lista-contratos" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+                <div id="view-inativos" class="view-section hidden fade-in px-4 md:px-8 py-6"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg text-slate-700 dark:text-white flex items-center gap-2"><i class="ph-fill ph-user-minus text-slate-500"></i> Inativos</h3></div><div id="lista-inativos" class="space-y-3"></div></div>
 
-                <!-- VIEW FINANCEIRO -->
+                <!-- FINANCEIRO -->
                 <div id="view-financeiro" class="view-section hidden fade-in">
-                    <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm w-full">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-emerald-500 shadow-sm"><p class="text-sm text-emerald-600 dark:text-emerald-400 font-bold">Receita Total</p><h3 class="text-2xl font-bold text-emerald-800 dark:text-emerald-300" id="pj-receita">R$ 0,00</h3></div>
-                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-rose-500 shadow-sm"><p class="text-sm text-rose-600 dark:text-rose-400 font-bold">Despesas</p><h3 class="text-2xl font-bold text-rose-800 dark:text-rose-300" id="pj-despesa">R$ 0,00</h3></div>
-                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm"><div class="flex justify-between"><p class="text-sm text-slate-500 dark:text-slate-400 font-bold">Saldo em Caixa</p></div><h3 class="text-2xl font-bold text-slate-700 dark:text-white" id="pj-saldo">R$ 0,00</h3></div>
-                        </div>
-
-                        <!-- === MEDIDOR DE SAÚDE FINANCEIRA === -->
-                        <div id="painel-saude-financeira" class="mt-6 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-                                <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                    <i class="ph-fill ph-heartbeat text-rose-500 text-xl"></i> Distribuição Inteligente de Lucro
-                                </h3>
-                                <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Retenção (Caixa):</span>
-                                    <input type="number" id="input-percentual-reserva" min="0" max="100" value="20" class="w-16 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded text-center text-sm font-bold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="window.salvarConfigFinanceira()">
-                                    <span class="text-sm font-bold text-slate-600 dark:text-slate-300">%</span>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                                <div>
-                                    <div class="flex justify-between items-end mb-1">
-                                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Saúde Financeira</span>
-                                        <span id="label-saude-status" class="text-sm font-bold text-emerald-600">Excelente</span>
-                                    </div>
-                                    <div class="health-bar-container w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full">
-                                        <div id="bar-saude-fill" class="health-bar-fill h-full bg-emerald-500 rounded-full" style="width: 0%"></div>
-                                    </div>
-                                    <p id="label-saude-msg" class="text-xs text-slate-400 mt-2">Sua margem de lucro está acima de 30%.</p>
-                                </div>
-                                <div class="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <span class="text-xs font-bold text-indigo-400 uppercase">Reserva da Empresa</span>
-                                        <span id="val-reserva-empresa" class="text-sm font-bold text-indigo-600 dark:text-indigo-400">R$ 0,00</span>
-                                    </div>
-                                    <div class="border-t border-indigo-200 dark:border-indigo-800 my-2"></div>
-                                    <div class="flex justify-between items-center">
-                                        <div><span class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Seu Salário (Pró-Labore)</span><span class="text-[10px] text-slate-400">Livre para saque</span></div>
-                                        <span id="val-meu-salario" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">R$ 0,00</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 py-6">
-                        <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm h-72"><canvas id="grafico-pj"></canvas></div>
-                        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white">Registrar Movimento</h3>
-                        <form onsubmit="window.adicionarTransacao(event, 'pj')" class="space-y-3">
-                            <div class="flex gap-2"><label class="flex-1 cursor-pointer"><input type="radio" name="pj-tipo" value="entrada" checked class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-emerald-100 peer-checked:text-emerald-700 peer-checked:border-emerald-200 dark:peer-checked:bg-emerald-900/30 dark:peer-checked:text-emerald-400 dark:text-slate-300 transition-all font-medium text-sm">Entrada</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="pj-tipo" value="saida" class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-rose-100 peer-checked:text-rose-700 peer-checked:border-rose-200 dark:peer-checked:bg-rose-900/30 dark:peer-checked:text-rose-400 dark:text-slate-300 transition-all font-medium text-sm">Saída</div></label></div>
-                            <div class="grid grid-cols-2 gap-3"><input type="text" id="pj-desc" placeholder="Descrição (ex: Conta de Luz)" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"><input type="number" id="pj-valor" placeholder="Valor (R$)" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <select id="pj-modalidade" onchange="window.toggleModalidade('pj')" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"><option value="unico">Único</option><option value="recorrente">Recorrente (Mensal)</option><option value="parcelado">Parcelado</option></select>
-                                <input type="date" id="pj-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div id="pj-parcelas-container" class="hidden"><label id="pj-parcelas-label" class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Quantidade</label><input type="number" id="pj-parcelas" placeholder="Qtd" min="1" value="12" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
-                            <button type="submit" class="w-full bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-slate-900/10">Confirmar</button>
-                        </form>
-                        </div>
-                    </div>
-                    <div class="mt-0 px-4 md:px-8 pb-6"><h3 class="font-bold text-slate-700 dark:text-white mb-3">Extrato Recente</h3><div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm"><div class="max-h-80 overflow-y-auto"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pj" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div></div>
+                    <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm w-full"><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-emerald-500 shadow-sm"><p class="text-sm text-emerald-600 dark:text-emerald-400 font-bold">Receita</p><h3 class="text-2xl font-bold text-emerald-800 dark:text-emerald-300" id="pj-receita">R$ 0,00</h3></div><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-rose-500 shadow-sm"><p class="text-sm text-rose-600 dark:text-rose-400 font-bold">Despesas</p><h3 class="text-2xl font-bold text-rose-800 dark:text-rose-300" id="pj-despesa">R$ 0,00</h3></div><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm"><div class="flex justify-between"><p class="text-sm text-slate-500 dark:text-slate-400 font-bold">Saldo</p></div><h3 class="text-2xl font-bold text-slate-700 dark:text-white" id="pj-saldo">R$ 0,00</h3></div></div><div class="mt-6 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2"><i class="ph-fill ph-heartbeat text-rose-500 text-xl"></i> Saúde Financeira</h3><div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700"><span class="text-xs font-bold text-slate-500 dark:text-slate-400">Retenção:</span><input type="number" id="input-percentual-reserva" min="0" max="100" value="20" class="w-12 bg-transparent text-center text-sm font-bold focus:outline-none" onchange="window.salvarConfigFinanceira()"><span class="text-sm font-bold text-slate-600 dark:text-slate-300">%</span></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center"><div><div class="flex justify-between items-end mb-1"><span class="text-xs font-bold text-slate-500 dark:text-slate-400">Status</span><span id="label-saude-status" class="text-sm font-bold text-emerald-600">Excelente</span></div><div class="health-bar-container w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full"><div id="bar-saude-fill" class="health-bar-fill h-full bg-emerald-500 rounded-full" style="width: 0%"></div></div></div><div class="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/30"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-indigo-400">Reserva</span><span id="val-reserva-empresa" class="text-sm font-bold text-indigo-600 dark:text-indigo-400">R$ 0,00</span></div><div class="border-t border-indigo-200 dark:border-indigo-800 my-2"></div><div class="flex justify-between items-center"><div><span class="block text-xs font-bold text-slate-500 dark:text-slate-400">Pró-Labore</span></div><span id="val-meu-salario" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">R$ 0,00</span></div></div></div></div></div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 py-6"><div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm h-72"><canvas id="grafico-pj"></canvas></div><div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white">Movimentar</h3><form onsubmit="window.adicionarTransacao(event, 'pj')" class="space-y-3"><div class="flex gap-2"><label class="flex-1 cursor-pointer"><input type="radio" name="pj-tipo" value="entrada" checked class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-emerald-100 peer-checked:text-emerald-700 dark:peer-checked:bg-emerald-900/30 dark:peer-checked:text-emerald-400 transition-all font-medium text-sm">Entrada</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="pj-tipo" value="saida" class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-rose-100 peer-checked:text-rose-700 dark:peer-checked:bg-rose-900/30 dark:peer-checked:text-rose-400 transition-all font-medium text-sm">Saída</div></label></div><div class="grid grid-cols-2 gap-3"><input type="text" id="pj-desc" placeholder="Descrição" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"><input type="number" id="pj-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div class="grid grid-cols-2 gap-3"><select id="pj-modalidade" onchange="window.toggleModalidade('pj')" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white text-sm"><option value="unico">Único</option><option value="recorrente">Recorrente</option><option value="parcelado">Parcelado</option></select><input type="date" id="pj-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div id="pj-parcelas-container" class="hidden"><label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Quantidade</label><input type="number" id="pj-parcelas" value="12" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><button type="submit" class="w-full bg-slate-800 text-white py-2.5 rounded-lg font-bold">Confirmar</button></form></div></div><div class="mt-0 px-4 md:px-8 pb-6"><h3 class="font-bold text-slate-700 dark:text-white mb-3">Extrato</h3><div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm"><div class="max-h-80 overflow-y-auto"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pj" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div></div>
                 </div>
 
-                <!-- VIEW PESSOAL -->
-                <div id="view-pessoal" class="view-section hidden fade-in">
-                    <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm w-full">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm"><p class="text-sm text-blue-600 dark:text-blue-400 font-bold">Ganhos Pessoais</p><h3 class="text-2xl font-bold text-blue-800 dark:text-blue-300" id="pf-receita">R$ 0,00</h3></div>
-                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-orange-500 shadow-sm"><p class="text-sm text-orange-600 dark:text-orange-400 font-bold">Gastos Pessoais</p><h3 class="text-2xl font-bold text-orange-800 dark:text-orange-300" id="pf-despesa">R$ 0,00</h3></div>
-                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-slate-500 shadow-sm"><div class="flex justify-between"><p class="text-sm text-slate-600 dark:text-slate-400 font-bold">Saldo Pessoal</p></div><h3 class="text-2xl font-bold text-slate-700 dark:text-white" id="pf-saldo">R$ 0,00</h3></div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 py-6">
-                        <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm h-72"><canvas id="grafico-pf"></canvas></div>
-                        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white">Movimentação Pessoal</h3>
-                        <form onsubmit="window.adicionarTransacao(event, 'pf')" class="space-y-3">
-                            <div class="flex gap-2"><label class="flex-1 cursor-pointer"><input type="radio" name="pf-tipo" value="entrada" checked class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-blue-100 peer-checked:text-blue-700 peer-checked:border-blue-200 dark:peer-checked:bg-blue-900/30 dark:peer-checked:text-blue-400 dark:text-slate-300 transition-all font-medium text-sm">Ganho</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="pf-tipo" value="saida" class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-orange-100 peer-checked:text-orange-700 peer-checked:border-orange-200 dark:peer-checked:bg-orange-900/30 dark:peer-checked:text-orange-400 dark:text-slate-300 transition-all font-medium text-sm">Gasto</div></label></div>
-                            <div class="grid grid-cols-2 gap-3"><input type="text" id="pf-desc" placeholder="Descrição (ex: Aluguel)" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"><input type="number" id="pf-valor" placeholder="Valor (R$)" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <select id="pf-modalidade" onchange="window.toggleModalidade('pf')" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"><option value="unico">Único</option><option value="recorrente">Recorrente (Mensal)</option><option value="parcelado">Parcelado</option></select>
-                                <input type="date" id="pf-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div id="pf-parcelas-container" class="hidden"><label id="pf-parcelas-label" class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Quantidade</label><input type="number" id="pf-parcelas" placeholder="Qtd" min="1" value="12" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
-                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-blue-600/20">Registrar</button>
-                        </form>
-                        </div>
-                    </div>
-                    <div class="mt-0 px-4 md:px-8 pb-6"><h3 class="font-bold text-slate-700 dark:text-white mb-3">Extrato Pessoal</h3><div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm"><div class="max-h-80 overflow-y-auto"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pf" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div></div>
-                </div>
+                <div id="view-pessoal" class="view-section hidden fade-in"><div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm w-full"><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm"><p class="text-sm text-blue-600 dark:text-blue-400 font-bold">Ganhos</p><h3 class="text-2xl font-bold text-blue-800 dark:text-blue-300" id="pf-receita">R$ 0,00</h3></div><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-orange-500 shadow-sm"><p class="text-sm text-orange-600 dark:text-orange-400 font-bold">Gastos</p><h3 class="text-2xl font-bold text-orange-800 dark:text-orange-300" id="pf-despesa">R$ 0,00</h3></div><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-slate-500 shadow-sm"><div class="flex justify-between"><p class="text-sm text-slate-600 dark:text-slate-400 font-bold">Saldo</p></div><h3 class="text-2xl font-bold text-slate-700 dark:text-white" id="pf-saldo">R$ 0,00</h3></div></div></div><div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 py-6"><div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm h-72"><canvas id="grafico-pf"></canvas></div><div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white">Movimentar</h3><form onsubmit="window.adicionarTransacao(event, 'pf')" class="space-y-3"><div class="flex gap-2"><label class="flex-1 cursor-pointer"><input type="radio" name="pf-tipo" value="entrada" checked class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-blue-100 peer-checked:text-blue-700 dark:peer-checked:bg-blue-900/30 dark:peer-checked:text-blue-400 transition-all font-medium text-sm">Ganho</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="pf-tipo" value="saida" class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-orange-100 peer-checked:text-orange-700 dark:peer-checked:bg-orange-900/30 dark:peer-checked:text-orange-400 transition-all font-medium text-sm">Gasto</div></label></div><div class="grid grid-cols-2 gap-3"><input type="text" id="pf-desc" placeholder="Descrição" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"><input type="number" id="pf-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div class="grid grid-cols-2 gap-3"><select id="pf-modalidade" onchange="window.toggleModalidade('pf')" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white text-sm"><option value="unico">Único</option><option value="recorrente">Recorrente</option><option value="parcelado">Parcelado</option></select><input type="date" id="pf-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div id="pf-parcelas-container" class="hidden"><label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Quantidade</label><input type="number" id="pf-parcelas" value="12" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><button type="submit" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-bold">Registrar</button></form></div></div><div class="mt-0 px-4 md:px-8 pb-6"><h3 class="font-bold text-slate-700 dark:text-white mb-3">Extrato</h3><div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm"><div class="max-h-80 overflow-y-auto"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pf" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div></div></div>
 
-                <!-- NOVA ABA PERFIL -->
-                <div id="view-perfil" class="view-section hidden fade-in px-4 md:px-8 py-6">
-                    <h3 class="font-bold text-lg text-slate-700 dark:text-white mb-6 flex items-center gap-2"><i class="ph-fill ph-user-gear text-blue-600"></i> Configurar Perfil da Empresa</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div class="md:col-span-1">
-                            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 text-center">
-                                <div class="relative w-32 h-32 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-800 border-4 border-white dark:border-slate-600 shadow-md overflow-hidden flex items-center justify-center group"><img id="profile-preview" src="" alt="" class="w-full h-full object-cover hidden"><i id="profile-placeholder" class="ph-fill ph-user text-4xl text-slate-300"></i><label for="profile-upload" class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-xs font-bold uppercase tracking-widest">Alterar</label></div>
-                                <input type="file" id="profile-upload" accept="image/*" class="hidden" onchange="window.uploadProfileImage(this)">
-                                <h4 class="font-bold text-slate-800 dark:text-white" id="display-company">Sua Empresa</h4><p class="text-sm text-slate-500 dark:text-slate-400" id="display-name">Seu Nome</p>
-                            </div>
-                        </div>
-                        <div class="md:col-span-2">
-                            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <form onsubmit="window.salvarPerfil(event)" class="space-y-4">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Nome da Empresa</label><input type="text" id="prof-company" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Seu Nome</label><input type="text" id="prof-name" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div></div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">E-mail</label><input type="email" id="prof-email" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Telefone</label><input type="text" id="prof-phone" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div></div>
-                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Cargo / Função</label><input type="text" id="prof-role" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></div>
-                                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end"><button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors shadow-lg shadow-blue-600/20">Salvar Alterações</button></div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                <div id="view-perfil" class="view-section hidden fade-in px-4 md:px-8 py-6"><h3 class="font-bold text-lg text-slate-700 dark:text-white mb-6 flex items-center gap-2"><i class="ph-fill ph-user-gear text-blue-600"></i> Configurar Perfil</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-8"><div class="md:col-span-1"><div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 text-center"><div class="relative w-32 h-32 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-800 border-4 border-white dark:border-slate-600 shadow-md overflow-hidden flex items-center justify-center group"><img id="profile-preview" src="" alt="" class="w-full h-full object-cover hidden"><i id="profile-placeholder" class="ph-fill ph-user text-4xl text-slate-300"></i><label for="profile-upload" class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-xs font-bold uppercase tracking-widest">Alterar</label></div><input type="file" id="profile-upload" accept="image/*" class="hidden" onchange="window.uploadProfileImage(this)"><h4 class="font-bold text-slate-800 dark:text-white" id="display-company">Sua Empresa</h4><p class="text-sm text-slate-500 dark:text-slate-400" id="display-name">Seu Nome</p></div></div><div class="md:col-span-2"><div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700"><form onsubmit="window.salvarPerfil(event)" class="space-y-4"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Nome da Empresa</label><input type="text" id="prof-company" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Seu Nome</label><input type="text" id="prof-name" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">E-mail</label><input type="email" id="prof-email" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Telefone</label><input type="text" id="prof-phone" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Cargo / Função</label><input type="text" id="prof-role" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div><div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end"><button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors shadow-lg">Salvar Alterações</button></div></form></div></div></div></div>
             </main>
 
-            <!-- RODAPÉ -->
             <footer class="text-center py-4 px-4 text-slate-400 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 z-30 text-[10px]">
                 <div class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6">
                     <div class="flex flex-col md:flex-row items-center gap-1 md:gap-3">
@@ -407,13 +258,13 @@
         </div>
     </div>
 
-    <!-- FIREBASE & SCRIPT LÓGICO -->
+    <!-- LÓGICA HÍBRIDA (MODULE) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-        // --- CONFIGURE AQUI SUAS CHAVES DO FIREBASE ---
+        // CONFIGURE SUAS CHAVES AQUI
         const firebaseConfig = {
             apiKey: "AIzaSyCv76c4hOVDZ-_lrGqemSxgXzuqb3Ezvcw",
             authDomain: "gestorpro-saas-b69c8.firebaseapp.com",
@@ -423,81 +274,155 @@
             appId: "1:252748859780:web:7eb87073ef72435bf1f5d1"
         };
 
-        // Detector de Nuvem
         let db = null;
         let auth = null;
         let currentUser = null;
-        let isOnline = false;
 
-        // Tenta iniciar Firebase se as chaves existirem
+        // INIT FIREBASE
         if (firebaseConfig.apiKey) {
             try {
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-                signInAnonymously(auth).catch(e => console.warn("Auth falhou:", e));
+                signInAnonymously(auth).catch(e => console.warn("Auth:", e));
                 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         currentUser = user;
-                        isOnline = true;
+                        window.isOnline = true;
                         updateStatus(true);
                         setupCloudListeners(user.uid);
                     }
                 });
             } catch (e) {
-                console.warn("Firebase não iniciou. Modo Offline.", e);
+                console.warn("Offline Mode Active");
             }
         }
 
         function updateStatus(online) {
             const el = document.getElementById('connection-status');
-            if (el) {
-                if (online) el.innerHTML = '<span class="text-emerald-500 flex items-center gap-1"><i class="ph-fill ph-cloud-check"></i> Nuvem Ativa</span>';
-                else el.innerHTML = '<span class="text-slate-500 flex items-center gap-1"><i class="ph-fill ph-wifi-slash"></i> Modo Offline</span>';
-            }
+            if(el) el.innerHTML = online ? '<span class="text-emerald-500 flex items-center gap-1"><i class="ph-fill ph-cloud-check"></i> Nuvem</span>' : 'Offline';
         }
 
-        // --- SISTEMA HÍBRIDO (Data Access Layer) ---
-        // Funções Globais que decidem se vão para a Nuvem ou LocalStorage
+        function setupCloudListeners(uid) {
+            const map = { 'leads': 'leads', 'scripts': 'scripts', 'notas': 'notas', 'transacoes_pj': 'pj', 'transacoes_pf': 'pf' };
+            Object.keys(map).forEach(col => {
+                onSnapshot(collection(db, 'users', uid, col), (snap) => {
+                    window.DB[map[col]] = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    window.renderizar();
+                });
+            });
+        }
+
+        // --- GLOBAL ACTION FUNCTIONS (HYBRID) ---
         
         window.adicionarLead = async (e) => {
             e.preventDefault();
-            const n = document.getElementById('lead-nome').value;
-            const empresa = document.getElementById('lead-empresa').value;
-            const docVal = document.getElementById('lead-doc').value;
-            const social = document.getElementById('lead-social').value;
-            const v = parseFloat(document.getElementById('lead-valor').value) || 0;
-            
-            const item = { nome: n, empresa, doc: docVal, social, valor: v, status: 'negociacao', createdAt: Date.now() };
-
-            if(isOnline && currentUser) {
-                document.getElementById('cloud-loading').classList.remove('hidden');
-                await addDoc(collection(db, 'users', currentUser.uid, 'leads'), item);
-                document.getElementById('cloud-loading').classList.add('hidden');
+            const data = {
+                nome: document.getElementById('lead-nome').value,
+                empresa: document.getElementById('lead-empresa').value,
+                doc: document.getElementById('lead-doc').value,
+                social: document.getElementById('lead-social').value,
+                valor: parseFloat(document.getElementById('lead-valor').value) || 0,
+                status: 'negociacao',
+                createdAt: Date.now()
+            };
+            if(window.isOnline && currentUser) {
+                await addDoc(collection(db, 'users', currentUser.uid, 'leads'), data);
             } else {
-                DB.leads.push({ id: Date.now().toString(), ...item });
-                saveLocal();
+                window.DB.leads.push({id: String(Date.now()), ...data});
+                window.saveLocal();
             }
             e.target.reset();
             window.mostrarToast('Lead salvo!');
         };
 
         window.alterarStatusLead = async (id, ns) => {
-            if(isOnline && currentUser) {
-                await updateDoc(doc(db, 'users', currentUser.uid, 'leads', id), { status: ns });
-                // automação simplificada para nuvem (idealmente seria Cloud Functions, mas faremos no front)
-                if(ns === 'ganho') {
-                     // Check duplication logic would go here
-                }
+            if(window.isOnline && currentUser) {
+                await updateDoc(doc(db, 'users', currentUser.uid, 'leads', id), {status: ns});
             } else {
-                const l = DB.leads.find(l => l.id === id);
-                if(l) { 
-                    l.status = ns; 
-                    saveLocal(); 
-                }
+                const l = window.DB.leads.find(x => x.id === id);
+                if(l) { l.status = ns; window.saveLocal(); }
             }
-            renderizar();
+        };
+
+        window.excluirLead = async (id) => {
+            if(!confirm('Excluir?')) return;
+            if(window.isOnline && currentUser) {
+                await deleteDoc(doc(db, 'users', currentUser.uid, 'leads', id));
+            } else {
+                window.DB.leads = window.DB.leads.filter(x => x.id !== id);
+                window.saveLocal();
+            }
+        };
+
+        window.confirmarEdicaoValor = async (id) => {
+            const data = {
+                nome: document.getElementById('edit-nome').value,
+                empresa: document.getElementById('edit-empresa').value,
+                doc: document.getElementById('edit-doc').value,
+                social: document.getElementById('edit-social').value,
+                valor: parseFloat(document.getElementById('edit-valor').value)
+            };
+            if(window.isOnline && currentUser) {
+                await updateDoc(doc(db, 'users', currentUser.uid, 'leads', id), data);
+            } else {
+                const l = window.DB.leads.find(x => x.id === id);
+                if(l) Object.assign(l, data);
+                window.saveLocal();
+            }
+            document.getElementById('custom-input-box').remove();
+            window.mostrarToast('Atualizado!');
+        };
+
+        window.adicionarScript = async (e) => {
+            e.preventDefault();
+            const data = {
+                titulo: document.getElementById('script-titulo').value,
+                texto: document.getElementById('script-texto').value,
+                createdAt: Date.now()
+            };
+            if(window.isOnline && currentUser) await addDoc(collection(db, 'users', currentUser.uid, 'scripts'), data);
+            else { window.DB.scripts.push({id: String(Date.now()), ...data}); window.saveLocal(); }
+            e.target.reset(); window.mostrarToast('Script salvo!');
+        };
+
+        window.excluirScript = async (id) => {
+            if(!confirm('Excluir?')) return;
+            if(window.isOnline && currentUser) await deleteDoc(doc(db, 'users', currentUser.uid, 'scripts', id));
+            else { window.DB.scripts = window.DB.scripts.filter(x => x.id !== id); window.saveLocal(); }
+        };
+
+        window.adicionarNota = async (e) => {
+            e.preventDefault();
+            const data = {
+                numero: document.getElementById('nota-numero').value,
+                cliente: document.getElementById('nota-cliente').value,
+                valor: parseFloat(document.getElementById('nota-valor').value)||0,
+                data: document.getElementById('nota-data').value,
+                link: document.getElementById('nota-link').value,
+                status: 'emitida', createdAt: Date.now()
+            };
+            if(window.isOnline && currentUser) await addDoc(collection(db, 'users', currentUser.uid, 'notas'), data);
+            else { window.DB.notas.push({id: String(Date.now()), ...data}); window.saveLocal(); }
+            e.target.reset(); window.mostrarToast('Nota salva!');
+        };
+
+        window.excluirNota = async (id) => {
+            if(!confirm('Excluir?')) return;
+            if(window.isOnline && currentUser) await deleteDoc(doc(db, 'users', currentUser.uid, 'notas', id));
+            else { window.DB.notas = window.DB.notas.filter(x => x.id !== id); window.saveLocal(); }
+        };
+
+        window.salvarContrato = async (id) => {
+            const data = {
+                contrato_inicio: document.getElementById(`c-ini-${id}`).value,
+                contrato_fim: document.getElementById(`c-fim-${id}`).value,
+                contrato_link: document.getElementById(`c-link-${id}`).value
+            };
+            if(window.isOnline && currentUser) await updateDoc(doc(db, 'users', currentUser.uid, 'leads', id), data);
+            else { const l = window.DB.leads.find(x => x.id === id); if(l) Object.assign(l, data); window.saveLocal(); }
+            window.mostrarToast('Contrato salvo!');
         };
 
         window.adicionarTransacao = async (e, tipo) => {
@@ -506,248 +431,269 @@
             const desc = document.getElementById(`${tipo}-desc`).value;
             const v = parseFloat(document.getElementById(`${tipo}-valor`).value) || 0;
             const modalidade = document.getElementById(`${tipo}-modalidade`).value;
-            const qtdInput = parseInt(document.getElementById(`${tipo}-parcelas`).value) || 1;
-            const dataInicial = document.getElementById(`${tipo}-data`).value;
+            const qtd = parseInt(document.getElementById(`${tipo}-parcelas`).value) || 1;
+            const dataStr = document.getElementById(`${tipo}-data`).value;
+            if(!desc || !v) return;
 
-            if (!desc || !v || !dataInicial) return;
-
-            let loopCount = modalidade === 'unico' ? 1 : qtdInput;
-            let dateObj = new Date(dataInicial);
+            const col = tipo === 'pj' ? 'transacoes_pj' : 'transacoes_pf';
+            const list = tipo === 'pj' ? window.DB.pj : window.DB.pf;
             
-            const colName = tipo === 'pj' ? 'transacoes_pj' : 'transacoes_pf';
-            const listRef = tipo === 'pj' ? DB.pj : DB.pf;
+            const loop = modalidade === 'unico' ? 1 : qtd;
+            const dateObj = new Date(dataStr);
 
-            document.getElementById('cloud-loading').classList.remove('hidden');
-
-            for (let i = 0; i < loopCount; i++) {
-                let currentDesc = desc;
-                if (modalidade === 'parcelado') currentDesc = `${desc} (${i + 1}/${loopCount})`;
-                let newDate = new Date(dateObj);
-                newDate.setMonth(newDate.getMonth() + i);
-                const formattedDate = newDate.toLocaleDateString('pt-BR');
-                const tData = { op, desc: currentDesc, valor: v, data: formattedDate, modalidade, createdAt: Date.now() + i };
-
-                if(isOnline && currentUser) {
-                    await addDoc(collection(db, 'users', currentUser.uid, colName), tData);
-                } else {
-                    listRef.unshift({ id: (Date.now() + i).toString(), ...tData });
-                }
+            for(let i=0; i<loop; i++) {
+                let d = desc;
+                if(modalidade === 'parcelado') d = `${desc} (${i+1}/${loop})`;
+                let nd = new Date(dateObj); nd.setMonth(nd.getMonth()+i);
+                const tData = { op, desc: d, valor: v, data: nd.toLocaleDateString('pt-BR'), modalidade, createdAt: Date.now()+i };
+                
+                if(window.isOnline && currentUser) await addDoc(collection(db, 'users', currentUser.uid, col), tData);
+                else list.push({id: String(Date.now()+i), ...tData});
             }
-            
-            document.getElementById('cloud-loading').classList.add('hidden');
-            if(!isOnline) saveLocal();
-            
-            e.target.reset();
-            window.mostrarToast('Lançamento realizado!');
+            if(!window.isOnline) window.saveLocal();
+            e.target.reset(); window.mostrarToast('Lançado!');
         };
 
-        // Sync Listener
-        function setupCloudListeners(uid) {
-            const cols = ['leads', 'scripts', 'notas', 'transacoes_pj', 'transacoes_pf'];
-            const mapDB = { 'leads': 'leads', 'scripts': 'scripts', 'notas': 'notas', 'transacoes_pj': 'pj', 'transacoes_pf': 'pf' };
-            
-            cols.forEach(col => {
-                onSnapshot(collection(db, 'users', uid, col), (snap) => {
-                    DB[mapDB[col]] = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    renderizar();
-                });
-            });
-        }
-
-        // Expor para global
-        window.isOnline = isOnline;
+        window.excluirTransacao = async (id, tipo) => {
+            if(!confirm('Excluir?')) return;
+            const col = tipo === 'pj' ? 'transacoes_pj' : 'transacoes_pf';
+            if(window.isOnline && currentUser) await deleteDoc(doc(db, 'users', currentUser.uid, col, id));
+            else { 
+                if(tipo === 'pj') window.DB.pj = window.DB.pj.filter(x => x.id !== id);
+                else window.DB.pf = window.DB.pf.filter(x => x.id !== id);
+                window.saveLocal();
+            }
+        };
     </script>
 
-    <!-- SCRIPT GERAL (UI e Lógica Local) -->
+    <!-- UI & RENDER SCRIPT -->
     <script>
-        // === LÓGICA DE SISTEMA ===
-        const SYSTEM_SECRET = "@uroraSystem@2024"; 
-        
-        // Estado Global (DB)
-        // Inicializa com LocalStorage, mas o módulo Firebase vai sobrescrever se conectar.
-        const DB = {
-            leads: JSON.parse(localStorage.getItem('gestor_leads')) || [],
-            scripts: JSON.parse(localStorage.getItem('gestor_scripts')) || [],
-            notas: JSON.parse(localStorage.getItem('gestor_notas')) || [],
-            pj: JSON.parse(localStorage.getItem('gestor_pj')) || [],
-            pf: JSON.parse(localStorage.getItem('gestor_pf')) || [],
-            profile: JSON.parse(localStorage.getItem('gestor_profile')) || {},
-            settings: JSON.parse(localStorage.getItem('gestor_settings')) || { reinvestRate: 20 }
-        };
-
-        // --- SISTEMA DE VISIBILIDADE ---
+        const SYSTEM_SECRET = "@uroraSystem@2024";
         let showValues = localStorage.getItem('gestor_show_values') !== 'false';
-        function togglePrivacy() { showValues = !showValues; localStorage.setItem('gestor_show_values', showValues); renderizar(); }
-        const formatMoney = (val) => { if (!showValues) return 'R$ •••••'; return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0); };
+        let chartPJ, chartPF;
 
-        // --- RENDERIZADOR COMPLETO (Restaurado) ---
-        let chartInstancePJ = null;
-        let chartInstancePF = null;
-
-        function renderizar() {
-            // CRM
-            renderCRM();
+        function togglePrivacy() {
+            showValues = !showValues;
+            localStorage.setItem('gestor_show_values', showValues);
             
-            // Scripts
-            const listaScriptsEl = document.getElementById('lista-scripts');
-            if(listaScriptsEl) {
-                listaScriptsEl.innerHTML = DB.scripts.length ? '' : '<div class="text-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-slate-400">Nenhum script salvo.</div>';
-                DB.scripts.forEach(s => {
-                    listaScriptsEl.innerHTML += `<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mb-4"><h4 class="font-bold text-lg text-slate-800 dark:text-white mb-2">${s.titulo || 'Sem Título'}</h4><div class="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap">${s.texto || ''}</div></div>`;
-                });
-            }
-
-            // Financeiro e Gráficos
-            renderFinanceiro('pj');
-            renderFinanceiro('pf');
-            renderNotas();
-        }
-
-        function renderCRM() {
-            // Recria cards do CRM
-            const listaLeadsEl = document.getElementById('lista-leads'); 
-            if(!listaLeadsEl) return;
+            const iconClass = showValues ? 'ph-eye' : 'ph-eye-slash';
+            const btnDesktop = document.getElementById('btn-eye-desktop');
+            if(btnDesktop) btnDesktop.innerHTML = `<i class="ph-bold ${iconClass} text-lg"></i>`;
+            const btnMobile = document.getElementById('btn-eye-mobile');
+            if(btnMobile) btnMobile.innerHTML = `<i class="ph-bold ${iconClass} text-xl"></i>`;
             
-            listaLeadsEl.innerHTML = '';
-            const groups = [{ id: 'negociacao', title: 'Em Negociação', statuses: ['negociacao'], color: 'text-blue-600' }, { id: 'sem_retorno', title: 'Aguardando', statuses: ['sem_retorno'], color: 'text-amber-600' }, { id: 'ativos', title: 'Ativos', statuses: ['ganho'], color: 'text-emerald-600' }, { id: 'inativos', title: 'Perdidos', statuses: ['perdido', 'inativo'], color: 'text-slate-500' }];
-            
-            let hasItems = false;
-            groups.forEach(group => {
-                const leads = DB.leads.filter(l => group.statuses.includes(l.status));
-                if(leads.length > 0) {
-                    hasItems = true;
-                    listaLeadsEl.innerHTML += `<div class="mb-6"><div class="flex items-center gap-2 mb-3 border-b border-slate-100 dark:border-slate-800 pb-2"><h4 class="font-bold text-sm uppercase ${group.color}">${group.title}</h4><span class="bg-slate-100 dark:bg-slate-800 text-xs font-bold px-2 py-0.5 rounded-full text-slate-500">${leads.length}</span></div><div class="space-y-3 group-container"></div></div>`;
-                    const container = listaLeadsEl.lastElementChild.querySelector('.group-container');
-                    leads.forEach(l => {
-                        let btns = `<button onclick="window.alterarStatusLead('${l.id}', 'ganho')" class="p-2 bg-emerald-500 text-white rounded-lg"><i class="ph-bold ph-check"></i></button><button onclick="window.alterarStatusLead('${l.id}', 'sem_retorno')" class="p-2 bg-amber-500 text-white rounded-lg"><i class="ph-bold ph-clock"></i></button><button onclick="window.alterarStatusLead('${l.id}', 'perdido')" class="p-2 bg-rose-500 text-white rounded-lg"><i class="ph-bold ph-x"></i></button>`;
-                        container.innerHTML += `<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center shadow-sm gap-4"><div><div class="font-bold text-slate-800 dark:text-white text-lg">${l.nome}</div><div class="text-sm text-slate-500">${l.empresa || ''}</div><div class="text-blue-600 font-bold mt-1">${formatMoney(l.valor)}</div></div><div class="flex gap-2">${btns}</div></div>`;
-                    });
-                }
-            });
-            if(!hasItems) listaLeadsEl.innerHTML = '<div class="text-center p-8 text-slate-400">Nenhum lead.</div>';
-
-            // Totais do Topo
-            const neg = DB.leads.filter(l => l.status === 'negociacao');
-            const ati = DB.leads.filter(l => l.status === 'ganho');
-            const sem = DB.leads.filter(l => l.status === 'sem_retorno');
-            const ina = DB.leads.filter(l => ['perdido','inativo'].includes(l.status));
-
-            if(document.getElementById('crm-potencial')) document.getElementById('crm-potencial').innerText = formatMoney(neg.reduce((a,l)=>a+l.valor,0));
-            if(document.getElementById('crm-ativos')) document.getElementById('crm-ativos').innerText = formatMoney(ati.reduce((a,l)=>a+l.valor,0));
-            if(document.getElementById('crm-count-negociacao')) document.getElementById('crm-count-negociacao').innerText = neg.length;
-            
-            if(document.getElementById('crm-sem-retorno')) document.getElementById('crm-sem-retorno').innerText = formatMoney(sem.reduce((a,l)=>a+l.valor,0));
-            if(document.getElementById('crm-count-sem-retorno')) document.getElementById('crm-count-sem-retorno').innerText = sem.length;
-            if(document.getElementById('crm-count-ativos')) document.getElementById('crm-count-ativos').innerText = ati.length;
-            
-            if(document.getElementById('crm-inativos')) document.getElementById('crm-inativos').innerText = formatMoney(ina.reduce((a,l)=>a+l.valor,0));
-            if(document.getElementById('crm-count-inativos')) document.getElementById('crm-count-inativos').innerText = ina.length;
-            
-            if(document.getElementById('total-negociacao-list')) document.getElementById('total-negociacao-list').innerText = formatMoney(DB.leads.reduce((a,l)=>a+l.valor,0));
-        }
-
-        function renderFinanceiro(tipo) {
-            const lista = tipo === 'pj' ? DB.pj : DB.pf; 
-            const entradas = lista.filter(t => t.op === 'entrada').reduce((acc, t) => acc + t.valor, 0); 
-            const saidas = lista.filter(t => t.op === 'saida').reduce((acc, t) => acc + t.valor, 0); 
-            const saldo = entradas - saidas;
-            
-            const elRec = document.getElementById(`${tipo}-receita`); if(elRec) elRec.innerText = formatMoney(entradas); 
-            const elDes = document.getElementById(`${tipo}-despesa`); if(elDes) elDes.innerText = formatMoney(saidas);
-            const elSal = document.getElementById(`${tipo}-saldo`); 
-            if(elSal) {
-                elSal.innerText = formatMoney(saldo); 
-                elSal.className = `text-2xl font-bold ${saldo >= 0 ? 'text-slate-700 dark:text-white' : 'text-rose-600 dark:text-rose-400'}`;
-            }
-            
-            const tabela = document.getElementById(`lista-transacoes-${tipo}`);
-            if(tabela) {
-                tabela.innerHTML = lista.length ? '' : '<tr><td colspan="3" class="p-6 text-center text-slate-400">Nenhuma movimentação.</td></tr>';
-                // Ordenar por data
-                [...lista].sort((a,b) => b.createdAt - a.createdAt).forEach(t => {
-                    tabela.innerHTML += `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 last:border-0"><td class="p-4 font-medium text-slate-700 dark:text-slate-300">${t.desc}<div class="text-xs text-slate-400 font-normal">${t.data}</div></td><td class="p-4 text-right font-mono font-medium ${t.op === 'entrada' ? 'text-emerald-600' : 'text-rose-600'}">${t.op === 'entrada' ? '+' : '-'} ${formatMoney(t.valor)}</td><td class="p-4 text-center w-10"><button class="text-slate-300 hover:text-rose-500"><i class="ph-bold ph-trash text-lg"></i></button></td></tr>`;
-                });
-                atualizarGrafico(tipo, entradas, saidas);
-            }
-        }
-
-        function renderNotas() {
-            const lista = document.getElementById('lista-notas'); if(!lista) return;
-            lista.innerHTML = DB.notas.length ? '' : '<div class="text-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-slate-400">Nenhuma nota.</div>';
-            DB.notas.forEach(n => {
-                lista.innerHTML += `<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mb-3 flex justify-between items-center"><div><div class="font-bold text-slate-800 dark:text-white">#${n.numero} - ${n.cliente}</div><div class="text-sm text-slate-500">${n.data}</div></div><div class="font-bold text-slate-700 dark:text-slate-300">${formatMoney(n.valor)}</div></div>`;
-            });
-            if(document.getElementById('total-notas')) document.getElementById('total-notas').innerText = formatMoney(DB.notas.reduce((a,n)=>a+n.valor,0));
-        }
-
-        function atualizarGrafico(tipo, entradas, saidas) {
-            const canvas = document.getElementById(`grafico-${tipo}`); if(!canvas) return; 
-            const ctx = canvas.getContext('2d'); 
-            const colorEntrada = tipo === 'pj' ? '#10b981' : '#3b82f6'; 
-            const colorSaida = tipo === 'pj' ? '#f43f5e' : '#f97316';
-            const data = { labels: ['Entradas', 'Saídas'], datasets: [{ data: [entradas, saidas], backgroundColor: [colorEntrada, colorSaida], borderRadius: 6, borderWidth: 0, barThickness: 40 }] };
-            const config = { type: 'bar', data: data, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } } } };
-            
-            if (tipo === 'pj') { if (chartInstancePJ) chartInstancePJ.destroy(); chartInstancePJ = new Chart(ctx, config); } 
-            else { if (chartInstancePF) chartInstancePF.destroy(); chartInstancePF = new Chart(ctx, config); }
-        }
-
-        function saveLocal() {
-            localStorage.setItem('gestor_leads', JSON.stringify(DB.leads));
-            localStorage.setItem('gestor_scripts', JSON.stringify(DB.scripts)); 
-            localStorage.setItem('gestor_notas', JSON.stringify(DB.notas)); 
-            localStorage.setItem('gestor_pj', JSON.stringify(DB.pj)); 
-            localStorage.setItem('gestor_pf', JSON.stringify(DB.pf)); 
-            localStorage.setItem('gestor_profile', JSON.stringify(DB.profile)); 
-            localStorage.setItem('gestor_settings', JSON.stringify(DB.settings));
             renderizar();
         }
 
+        const formatMoney = (val) => {
+            if (!showValues) return 'R$ •••••';
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+        };
+
+        function renderizar() {
+            renderCRM();
+            renderScripts();
+            renderNotas();
+            renderFin('pj');
+            renderFin('pf');
+        }
+
+        function renderCRM() {
+            const list = document.getElementById('lista-leads'); if(!list) return;
+            list.innerHTML = '';
+            const groups = [
+                {id: 'negociacao', label: 'Negociação', color: 'text-blue-600', st: ['negociacao']},
+                {id: 'sem_retorno', label: 'Aguardando', color: 'text-amber-600', st: ['sem_retorno']},
+                {id: 'ativos', label: 'Ativos', color: 'text-emerald-600', st: ['ganho']},
+                {id: 'inativos', label: 'Perdidos', color: 'text-slate-500', st: ['perdido', 'inativo']}
+            ];
+            
+            groups.forEach(g => {
+                const items = window.DB.leads.filter(l => g.st.includes(l.status));
+                if(items.length) {
+                    list.innerHTML += `<div class="mb-6"><div class="flex items-center gap-2 mb-3 border-b border-slate-100 dark:border-slate-800 pb-2"><h4 class="font-bold text-sm uppercase ${g.color}">${g.label}</h4><span class="bg-slate-100 dark:bg-slate-800 text-xs font-bold px-2 py-0.5 rounded-full text-slate-500">${items.length}</span></div><div class="space-y-3 group-container"></div></div>`;
+                    const container = list.lastElementChild.querySelector('.group-container');
+                    items.forEach(l => {
+                        let btns = `<button onclick="window.alterarStatusLead('${l.id}', 'ganho')" class="p-2 bg-emerald-500 text-white rounded"><i class="ph-bold ph-check"></i></button><button onclick="window.alterarStatusLead('${l.id}', 'sem_retorno')" class="p-2 bg-amber-500 text-white rounded"><i class="ph-bold ph-clock"></i></button><button onclick="window.alterarStatusLead('${l.id}', 'perdido')" class="p-2 bg-rose-500 text-white rounded"><i class="ph-bold ph-x"></i></button>`;
+                        if(g.id === 'ativos') btns = `<button onclick="window.alterarStatusLead('${l.id}', 'inativo')" class="px-3 py-1 bg-slate-200 text-slate-700 text-xs rounded font-bold">Desativar</button>`;
+                        container.innerHTML += `<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center shadow-sm gap-4"><div><div class="font-bold text-slate-800 dark:text-white text-lg">${l.nome}</div><div class="text-sm text-slate-500">${l.empresa||''}</div><div class="text-blue-600 font-bold mt-1">${formatMoney(l.valor)}</div></div><div class="flex gap-2"><button onclick="editarValorLead('${l.id}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="window.excluirLead('${l.id}')" class="p-2 text-slate-400 hover:text-red-500"><i class="ph-bold ph-trash"></i></button>${btns}</div></div>`;
+                    });
+                }
+            });
+            // Update Totals
+            const neg = window.DB.leads.filter(l => l.status === 'negociacao');
+            const ati = window.DB.leads.filter(l => l.status === 'ganho');
+            const sem = window.DB.leads.filter(l => l.status === 'sem_retorno');
+            const ina = window.DB.leads.filter(l => ['perdido','inativo'].includes(l.status));
+            
+            if(document.getElementById('crm-potencial')) document.getElementById('crm-potencial').innerText = formatMoney(neg.reduce((a,b)=>a+b.valor,0));
+            if(document.getElementById('crm-ativos')) document.getElementById('crm-ativos').innerText = formatMoney(ati.reduce((a,b)=>a+b.valor,0));
+            if(document.getElementById('crm-count-negociacao')) document.getElementById('crm-count-negociacao').innerText = neg.length;
+            if(document.getElementById('crm-sem-retorno')) document.getElementById('crm-sem-retorno').innerText = formatMoney(sem.reduce((a,b)=>a+b.valor,0));
+            if(document.getElementById('crm-count-sem-retorno')) document.getElementById('crm-count-sem-retorno').innerText = sem.length;
+            if(document.getElementById('crm-count-ativos')) document.getElementById('crm-count-ativos').innerText = ati.length;
+            if(document.getElementById('crm-inativos')) document.getElementById('crm-inativos').innerText = formatMoney(ina.reduce((a,b)=>a+b.valor,0));
+            if(document.getElementById('crm-count-inativos')) document.getElementById('crm-count-inativos').innerText = ina.length;
+            if(document.getElementById('total-negociacao-list')) document.getElementById('total-negociacao-list').innerText = formatMoney(window.DB.leads.reduce((a,b)=>a+b.valor,0));
+
+            // Specialized Views
+            const semList = document.getElementById('lista-sem-retorno'); if(semList) { semList.innerHTML = ''; sem.forEach(l => semList.innerHTML += createSimpleCard(l)); }
+            const atiList = document.getElementById('lista-ativos-grid'); if(atiList) { atiList.innerHTML = ''; ati.forEach(l => atiList.innerHTML += createSimpleCard(l, true)); }
+            const conList = document.getElementById('lista-contratos'); if(conList) { conList.innerHTML = ''; ati.forEach(l => conList.innerHTML += createContractCard(l)); }
+            const inaList = document.getElementById('lista-inativos'); if(inaList) { inaList.innerHTML = ''; ina.forEach(l => inaList.innerHTML += createSimpleCard(l)); }
+        }
+
+        function createSimpleCard(l, active=false) {
+            return `<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 mb-2 flex justify-between items-center shadow-sm"><div><div class="font-bold dark:text-white">${l.nome}</div><div class="text-sm text-slate-500">${l.empresa||''}</div></div><div class="text-right"><div class="font-bold text-blue-600">${formatMoney(l.valor)}</div></div></div>`;
+        }
+
+        function createContractCard(l) {
+            return `<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"><div class="flex justify-between mb-3"><span class="font-bold dark:text-white">${l.nome}</span><span class="text-xs bg-emerald-100 text-emerald-600 px-2 py-1 rounded font-bold">Ativo</span></div><div class="grid grid-cols-2 gap-2 mb-3"><div><label class="text-[10px] text-slate-400 uppercase font-bold">Início</label><input type="date" id="c-ini-${l.id}" value="${l.contrato_inicio||''}" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded p-1 text-sm dark:text-white"></div><div><label class="text-[10px] text-slate-400 uppercase font-bold">Fim</label><input type="date" id="c-fim-${l.id}" value="${l.contrato_fim||''}" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded p-1 text-sm dark:text-white"></div></div><div class="mb-3"><label class="text-[10px] text-slate-400 uppercase font-bold">Link</label><input type="url" id="c-link-${l.id}" value="${l.contrato_link||''}" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded p-1 text-sm dark:text-white"></div><div class="flex gap-2"><button onclick="window.salvarContrato('${l.id}')" class="flex-1 bg-slate-800 text-white text-xs font-bold py-2 rounded">Salvar</button>${l.contrato_link ? `<a href="${l.contrato_link}" target="_blank" class="flex-1 bg-blue-100 text-blue-600 text-xs font-bold py-2 rounded text-center">Abrir</a>` : ''}</div></div>`;
+        }
+
+        function renderScripts() {
+            const list = document.getElementById('lista-scripts'); if(!list) return;
+            list.innerHTML = '';
+            window.DB.scripts.forEach(s => {
+                const safeTxt = s.texto.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                list.innerHTML += `<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative"><div class="absolute top-4 right-4 flex gap-2"><button onclick="copiarScript('${safeTxt}')" class="text-indigo-500 hover:bg-indigo-50 p-1.5 rounded"><i class="ph-bold ph-copy"></i></button><button onclick="window.excluirScript('${s.id}')" class="text-slate-400 hover:text-red-500 p-1.5 rounded"><i class="ph-bold ph-trash"></i></button></div><h4 class="font-bold text-lg dark:text-white mb-2 pr-20">${s.titulo}</h4><div class="bg-slate-50 dark:bg-slate-800 p-3 rounded text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap">${s.texto}</div></div>`;
+            });
+        }
+
+        function renderNotas() {
+            const list = document.getElementById('lista-notas'); if(!list) return;
+            const total = window.DB.notas.reduce((a,b)=>a+b.valor,0);
+            if(document.getElementById('total-notas')) document.getElementById('total-notas').innerText = formatMoney(total);
+            list.innerHTML = '';
+            window.DB.notas.forEach(n => {
+                list.innerHTML += `<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex justify-between items-center mb-2"><div><div class="font-bold dark:text-white">#${n.numero} - ${n.cliente}</div><div class="text-xs text-slate-500">${n.data}</div></div><div class="flex items-center gap-3"><span class="font-bold text-slate-700 dark:text-white">${formatMoney(n.valor)}</span>${n.link ? `<a href="${n.link}" target="_blank" class="text-indigo-500"><i class="ph-bold ph-link"></i></a>` : ''}<button onclick="window.excluirNota('${n.id}')" class="text-slate-300 hover:text-red-500"><i class="ph-bold ph-trash"></i></button></div></div>`;
+            });
+        }
+
+        function renderFin(type) {
+            const list = type === 'pj' ? window.DB.pj : window.DB.pf;
+            const ent = list.filter(x => x.op === 'entrada').reduce((a,b) => a+b.valor, 0);
+            const sai = list.filter(x => x.op === 'saida').reduce((a,b) => a+b.valor, 0);
+            const sal = ent - sai;
+
+            const elRec = document.getElementById(`${type}-receita`); if(elRec) elRec.innerText = formatMoney(ent);
+            const elDes = document.getElementById(`${type}-despesa`); if(elDes) elDes.innerText = formatMoney(sai);
+            const elSal = document.getElementById(`${type}-saldo`); if(elSal) { elSal.innerText = formatMoney(sal); elSal.className = `text-2xl font-bold ${sal>=0 ? 'text-slate-700 dark:text-white' : 'text-rose-500'}`; }
+
+            const table = document.getElementById(`lista-transacoes-${type}`);
+            if(table) {
+                table.innerHTML = '';
+                [...list].sort((a,b) => b.createdAt - a.createdAt).forEach(t => {
+                    table.innerHTML += `<tr class="border-b border-slate-100 dark:border-slate-800"><td class="p-3"><div class="font-medium dark:text-white">${t.desc}</div><div class="text-xs text-slate-400">${t.data}</div></td><td class="p-3 text-right font-mono ${t.op==='entrada'?'text-emerald-500':'text-rose-500'}">${t.op==='entrada'?'+':'-'} ${formatMoney(t.valor)}</td><td class="p-3 text-center w-8"><button onclick="window.excluirTransacao('${t.id}', '${type}')" class="text-slate-300 hover:text-red-500"><i class="ph-bold ph-trash"></i></button></td></tr>`;
+                });
+            }
+            updateChart(type, ent, sai);
+            
+            if(type === 'pj') {
+                const profit = ent - sai;
+                const reserveRate = window.DB.settings.reinvestRate || 20;
+                const reserve = profit > 0 ? profit * (reserveRate/100) : 0;
+                const salary = profit > 0 ? profit - reserve : 0;
+                if(document.getElementById('val-reserva-empresa')) document.getElementById('val-reserva-empresa').innerText = formatMoney(reserve);
+                if(document.getElementById('val-meu-salario')) document.getElementById('val-meu-salario').innerText = formatMoney(salary);
+            }
+        }
+
+        function updateChart(type, ent, sai) {
+            const ctx = document.getElementById(`grafico-${type}`); if(!ctx) return;
+            const data = { labels: ['Entradas', 'Saídas'], datasets: [{ data: [ent, sai], backgroundColor: [type==='pj'?'#10b981':'#3b82f6', type==='pj'?'#f43f5e':'#f97316'], borderRadius: 5 }] };
+            const config = { type: 'bar', data: data, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } } };
+            if(type === 'pj') { if(chartPJ) chartPJ.destroy(); chartPJ = new Chart(ctx, config); }
+            else { if(chartPF) chartPF.destroy(); chartPF = new Chart(ctx, config); }
+        }
+
+        // --- EDIT MODAL ---
+        function editarValorLead(id) {
+            const l = window.DB.leads.find(x => x.id === id); if(!l) return;
+            const box = document.createElement('div');
+            box.id = 'custom-input-box';
+            box.className = 'fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm fade-in';
+            box.innerHTML = `<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700"><h3 class="text-lg font-bold mb-4 dark:text-white">Editar Lead</h3><div class="space-y-3"><div><label class="text-xs font-bold text-slate-500 uppercase">Nome</label><input id="edit-nome" value="${l.nome}" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-slate-500 uppercase">Empresa</label><input id="edit-empresa" value="${l.empresa||''}" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div><label class="text-xs font-bold text-slate-500 uppercase">CPF/CNPJ</label><input id="edit-doc" value="${l.doc||''}" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white"></div></div><div><label class="text-xs font-bold text-slate-500 uppercase">Social</label><input id="edit-social" value="${l.social||''}" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div><label class="text-xs font-bold text-slate-500 uppercase">Valor</label><input type="number" id="edit-valor" value="${l.valor}" step="0.01" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white font-bold text-blue-600"></div></div><div class="flex gap-2 mt-6"><button onclick="this.closest('#custom-input-box').remove()" class="flex-1 py-2 bg-slate-200 text-slate-600 rounded">Cancelar</button><button onclick="window.confirmarEdicaoValor('${l.id}')" class="flex-1 py-2 bg-blue-600 text-white rounded font-bold">Salvar</button></div></div>`;
+            document.body.appendChild(box);
+        }
+        window.editarValorLead = editarValorLead;
+
+        // --- IA ---
+        function gerarScriptIA() {
+            const titulo = document.getElementById('script-titulo').value;
+            const key = localStorage.getItem('gemini_api_key');
+            if(!titulo) return alert('Digite um título');
+            if(!key) return window.abrirConfig();
+            
+            const btn = document.getElementById('btn-gerar-script');
+            btn.innerHTML = 'Gerando...';
+            fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ contents: [{ parts: [{ text: `Escreva um script de vendas curto para: ${titulo}` }] }] })
+            }).then(r=>r.json()).then(d => {
+                document.getElementById('script-texto').value = d.candidates[0].content.parts[0].text;
+            }).catch(e => alert('Erro IA')).finally(() => btn.innerHTML = '<i class="ph-bold ph-sparkle"></i> Gerar IA');
+        }
+        window.gerarScriptIA = gerarScriptIA;
+
+        // --- UTILS ---
+        function saveLocal() {
+            localStorage.setItem('gestor_leads', JSON.stringify(window.DB.leads));
+            localStorage.setItem('gestor_scripts', JSON.stringify(window.DB.scripts));
+            localStorage.setItem('gestor_notas', JSON.stringify(window.DB.notas));
+            localStorage.setItem('gestor_pj', JSON.stringify(window.DB.pj));
+            localStorage.setItem('gestor_pf', JSON.stringify(window.DB.pf));
+            localStorage.setItem('gestor_profile', JSON.stringify(window.DB.profile));
+            localStorage.setItem('gestor_settings', JSON.stringify(window.DB.settings));
+            renderizar();
+        }
+        window.saveLocal = saveLocal; window.renderizar = renderizar;
+
         function checkLicense() {
-            if (typeof CryptoJS === 'undefined') return;
             const lic = JSON.parse(localStorage.getItem('gestor_license'));
-            if (!lic) { showActivation("Ativação Necessária", "Insira os dados da sua licença."); return; }
+            if(!lic) return showAct('Ativação Necessária', 'Insira seus dados.');
             
             const today = new Date(); today.setHours(0,0,0,0);
-            const parts = lic.date.split('/');
-            const expiry = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
-
-            if (expiry < today) { showActivation("Licença Expirada", "Sua assinatura venceu."); return; }
-
-            const dateISO = `${parts[2]}-${parts[1]}-${parts[0]}`;
-            const payloadCheck = `${lic.name.toLowerCase()}|${dateISO}`;
-            const hashCheck = CryptoJS.HmacSHA256(payloadCheck, SYSTEM_SECRET).toString().substring(0, 16).toUpperCase();
-            const keyCheck = hashCheck.match(/.{1,4}/g).join('-');
-
-            if (lic.key !== keyCheck) { showActivation("Licença Inválida", "Chave incorreta."); return; }
+            const p = lic.date.split('/'); const exp = new Date(`${p[2]}-${p[1]}-${p[0]}T00:00:00`);
+            if(exp < today) return showAct('Expirado', 'Sua licença venceu.');
+            
+            const h = CryptoJS.HmacSHA256(`${lic.name.toLowerCase()}|${p[2]}-${p[1]}-${p[0]}`, SYSTEM_SECRET).toString().substring(0,16).toUpperCase().match(/.{1,4}/g).join('-');
+            if(lic.key !== h) return showAct('Inválido', 'Chave incorreta.');
 
             document.getElementById('license-overlay').classList.add('hidden');
-            document.getElementById('header-license-info').innerText = "Assinatura Ativa";
-            const diff = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
-            document.getElementById('days-remaining').innerText = `Expira em ${diff} dias`;
-            
+            document.getElementById('header-license-info').innerText = 'Ativo';
+            document.getElementById('days-remaining').innerText = `Expira em ${Math.ceil((exp-today)/(1000*60*60*24))} dias`;
             checkAuth();
         }
 
-        function showActivation(t, m) { document.getElementById('license-overlay').classList.remove('hidden'); document.getElementById('app-content').classList.add('blur-content'); document.getElementById('lic-title').innerText = t; document.getElementById('lic-msg').innerText = m; }
+        function showAct(t, m) { document.getElementById('license-overlay').classList.remove('hidden'); document.getElementById('app-content').classList.add('blur-content'); document.getElementById('lic-title').innerText = t; document.getElementById('lic-msg').innerText = m; }
         function handleActivation(e) { e.preventDefault(); const n=document.getElementById('lic-name').value.trim(), d=document.getElementById('lic-date').value.trim(), k=document.getElementById('lic-key').value.trim(); if(!n||!d||!k) return alert("Preencha tudo"); const p=d.split('/'); const di=`${p[2]}-${p[1]}-${p[0]}`; const h=CryptoJS.HmacSHA256(`${n.toLowerCase()}|${di}`, SYSTEM_SECRET).toString().substring(0,16).toUpperCase().match(/.{1,4}/g).join('-'); if(k.toUpperCase()===h) { localStorage.setItem('gestor_license', JSON.stringify({name:n,date:d,key:k.toUpperCase()})); alert("Ativado!"); location.reload(); } else alert("Chave inválida"); }
         function emergencyReset() { if(confirm("Resetar?")) { localStorage.clear(); location.reload(); } }
         
         function checkAuth() { if(!localStorage.getItem('gestor_auth')) { document.getElementById('login-title').innerText="Crie sua Senha"; document.getElementById('confirm-pass-container').classList.remove('hidden'); } document.getElementById('login-overlay').classList.remove('hidden'); }
         function handleLogin(e) { e.preventDefault(); const p=document.getElementById('login-pass').value, c=document.getElementById('login-pass-confirm').value, s=localStorage.getItem('gestor_auth'); if(!s) { if(p.length<4) return alert("Mínimo 4"); if(p!==c) return alert("Senhas diferem"); localStorage.setItem('gestor_auth',CryptoJS.SHA256(p).toString()); unlock(); } else { if(CryptoJS.SHA256(p).toString()===s) unlock(); else alert("Senha errada"); } }
         function unlock() { document.getElementById('login-overlay').classList.add('hidden'); document.getElementById('app-content').classList.remove('blur-content'); renderizar(); }
+        
         function toggleModalidade(t) { const s=document.getElementById(`${t}-modalidade`), c=document.getElementById(`${t}-parcelas-container`); if(s.value==='unico') c.classList.add('hidden'); else c.classList.remove('hidden'); }
         window.toggleModalidade = toggleModalidade;
         
         function mudarAba(aba) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             document.getElementById(`view-${aba}`).classList.remove('hidden');
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'bg-blue-600', 'text-white', 'shadow-md'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-blue-600', 'text-white', 'shadow-md');
+                btn.classList.add('text-slate-600', 'dark:text-slate-400');
+            });
             document.getElementById(`btn-${aba}`).classList.add('active', 'bg-blue-600', 'text-white', 'shadow-md');
+            document.getElementById(`btn-${aba}`).classList.remove('text-slate-600', 'dark:text-slate-400');
             renderizar();
         }
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
         function mostrarToast(m) { const t=document.getElementById('toast'); t.innerHTML=`<i class="ph-bold ph-check"></i> ${m}`; t.classList.remove('hidden','translate-y-10','opacity-0'); setTimeout(()=>{ t.classList.add('translate-y-10','opacity-0'); setTimeout(()=>t.classList.add('hidden'),300) },3000); }
+        function copiarScript(t) { navigator.clipboard.writeText(t); mostrarToast('Copiado!'); }
+        function salvarConfig() { localStorage.setItem('gemini_api_key', document.getElementById('input-api-key').value); document.getElementById('modal-config').classList.add('hidden'); }
+        function abrirConfig() { document.getElementById('input-api-key').value = localStorage.getItem('gemini_api_key')||''; document.getElementById('modal-config').classList.remove('hidden'); }
+        function fecharConfig() { document.getElementById('modal-config').classList.add('hidden'); }
 
         checkLicense();
     </script>
