@@ -352,11 +352,59 @@
         };
 
         window.alterarStatusLead = async (id, ns) => {
+            // Recupera o lead para saber valores e status anterior
+            const l = window.DB.leads.find(x => x.id === id);
+            if (!l) return;
+            const oldStatus = l.status;
+
+            // 1. Atualiza o Status do Lead
             if(window.isOnline && currentUser) {
                 await updateDoc(doc(db, 'users', currentUser.uid, 'leads', id), {status: ns});
             } else {
-                const l = window.DB.leads.find(x => x.id === id);
-                if(l) { l.status = ns; window.saveLocal(); }
+                l.status = ns; 
+                window.saveLocal(); 
+            }
+
+            // 2. Automação Financeira (Empresa)
+            const today = new Date().toLocaleDateString('pt-BR');
+            
+            // Se virou Cliente Ativo -> Adicionar Receita
+            if (ns === 'ganho' && oldStatus !== 'ganho') {
+                // Verifica se já existe transação para este lead para evitar duplicidade
+                const exists = window.DB.pj.find(t => t.leadId === id);
+                
+                if (!exists) {
+                    const tData = { 
+                        op: 'entrada', 
+                        desc: `Contrato: ${l.nome} (${l.empresa || 'Cliente'})`, 
+                        valor: l.valor, 
+                        data: today, 
+                        modalidade: 'recorrente', 
+                        leadId: id, // Vinculo para poder apagar depois se cancelar
+                        createdAt: Date.now() 
+                    };
+
+                    if(window.isOnline && currentUser) {
+                        await addDoc(collection(db, 'users', currentUser.uid, 'transacoes_pj'), tData);
+                    } else {
+                        window.DB.pj.unshift({id: String(Date.now()), ...tData});
+                        window.saveLocal();
+                    }
+                    window.mostrarToast('Cliente Ativo! Receita lançada.');
+                }
+            } 
+            // Se deixou de ser Ativo -> Remover Receita
+            else if (oldStatus === 'ganho' && ns !== 'ganho') {
+                const trans = window.DB.pj.find(t => t.leadId === id);
+                if (trans) {
+                    if(window.isOnline && currentUser) {
+                        await deleteDoc(doc(db, 'users', currentUser.uid, 'transacoes_pj', trans.id));
+                    } else {
+                        window.DB.pj = window.DB.pj.filter(t => t.id !== trans.id);
+                        window.saveLocal();
+                    }
+                    window.mostrarToast('Receita removida do financeiro.');
+                }
             }
         };
 
