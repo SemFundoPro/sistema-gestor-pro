@@ -73,6 +73,7 @@
         
         // Define Visual Helpers Globally
         window.showValues = localStorage.getItem('gestor_show_values') !== 'false';
+        window.viewDate = new Date(); // Data base para filtros de mês
         
         window.formatMoney = function(val) {
             if (!window.showValues) return 'R$ •••••';
@@ -267,14 +268,41 @@
 
                 <!-- FINANCEIRO -->
                 <div id="view-financeiro" class="view-section hidden fade-in">
-                    <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm w-full"><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-emerald-500 shadow-sm"><p class="text-sm text-emerald-600 dark:text-emerald-400 font-bold">Receita</p><h3 class="text-2xl font-bold text-emerald-800 dark:text-emerald-300" id="pj-receita">R$ 0,00</h3></div><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-rose-500 shadow-sm"><p class="text-sm text-rose-600 dark:text-rose-400 font-bold">Despesas</p><h3 class="text-2xl font-bold text-rose-800 dark:text-rose-300" id="pj-despesa">R$ 0,00</h3></div><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm"><div class="flex justify-between"><p class="text-sm text-slate-500 dark:text-slate-400 font-bold">Saldo</p></div><h3 class="text-2xl font-bold text-slate-700 dark:text-white" id="pj-saldo">R$ 0,00</h3></div></div><div class="mt-6 px-4 md:px-0"><div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2"><i class="ph-fill ph-heartbeat text-rose-500 text-xl"></i> Saúde Financeira</h3><div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700"><span class="text-xs font-bold text-slate-500 dark:text-slate-400">Retenção:</span><input type="number" id="input-percentual-reserva" min="0" max="100" value="20" class="w-12 bg-transparent text-center text-sm font-bold focus:outline-none" onchange="window.salvarConfigFinanceira()"><span class="text-sm font-bold text-slate-600 dark:text-slate-300">%</span></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center"><div><div class="flex justify-between items-end mb-1"><span class="text-xs font-bold text-slate-500 dark:text-slate-400">Status</span><span id="label-saude-status" class="text-sm font-bold text-emerald-600">Excelente</span></div><div class="health-bar-container w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full"><div id="bar-saude-fill" class="health-bar-fill h-full bg-emerald-500 rounded-full" style="width: 0%"></div></div></div><div class="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/30"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-indigo-400">Reserva</span><span id="val-reserva-empresa" class="text-sm font-bold text-indigo-600 dark:text-indigo-400">R$ 0,00</span></div><div class="border-t border-indigo-200 dark:border-indigo-800 my-2"></div><div class="flex justify-between items-center"><div><span class="block text-xs font-bold text-slate-500 dark:text-slate-400">Pró-Labore</span></div><span id="val-meu-salario" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">R$ 0,00</span></div></div></div></div></div></div>
+                    <!-- NAV E TOTAIS STICKY -->
+                    <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 shadow-sm w-full">
+                        <!-- Navegação de Mês -->
+                        <div class="flex items-center justify-center gap-6 mb-6">
+                            <button onclick="window.mudarMes(-1)" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-white transition-colors"><i class="ph-bold ph-caret-left text-xl"></i></button>
+                            <h3 id="label-mes-ano" class="text-xl font-bold capitalize text-slate-800 dark:text-white w-40 text-center">...</h3>
+                            <button onclick="window.mudarMes(1)" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-white transition-colors"><i class="ph-bold ph-caret-right text-xl"></i></button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-emerald-500 shadow-sm"><p class="text-sm text-emerald-600 dark:text-emerald-400 font-bold">Receita (Mês)</p><h3 class="text-2xl font-bold text-emerald-800 dark:text-emerald-300" id="pj-receita">R$ 0,00</h3></div>
+                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-rose-500 shadow-sm"><p class="text-sm text-rose-600 dark:text-rose-400 font-bold">Despesas (Mês)</p><h3 class="text-2xl font-bold text-rose-800 dark:text-rose-300" id="pj-despesa">R$ 0,00</h3></div>
+                            <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm"><div class="flex justify-between"><p class="text-sm text-slate-500 dark:text-slate-400 font-bold">Resultado (Mês)</p></div><h3 class="text-2xl font-bold text-slate-700 dark:text-white" id="pj-saldo">R$ 0,00</h3></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 px-4 md:px-0 mx-4 md:mx-8">
+                        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2"><i class="ph-fill ph-heartbeat text-rose-500 text-xl"></i> Saúde Financeira</h3>
+                                <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700"><span class="text-xs font-bold text-slate-500 dark:text-slate-400">Retenção:</span><input type="number" id="input-percentual-reserva" min="0" max="100" value="20" class="w-12 bg-transparent text-center text-sm font-bold focus:outline-none" onchange="window.salvarConfigFinanceira()"><span class="text-sm font-bold text-slate-600 dark:text-slate-300">%</span></div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                                <div><div class="flex justify-between items-end mb-1"><span class="text-xs font-bold text-slate-500 dark:text-slate-400">Status</span><span id="label-saude-status" class="text-sm font-bold text-emerald-600">Excelente</span></div><div class="health-bar-container w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full"><div id="bar-saude-fill" class="health-bar-fill h-full bg-emerald-500 rounded-full" style="width: 0%"></div></div></div>
+                                <div class="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/30"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-indigo-400">Reserva</span><span id="val-reserva-empresa" class="text-sm font-bold text-indigo-600 dark:text-indigo-400">R$ 0,00</span></div><div class="border-t border-indigo-200 dark:border-indigo-800 my-2"></div><div class="flex justify-between items-center"><div><span class="block text-xs font-bold text-slate-500 dark:text-slate-400">Pró-Labore</span></div><span id="val-meu-salario" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">R$ 0,00</span></div></div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 py-6">
                         <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm h-72">
                             <canvas id="grafico-pj"></canvas>
                         </div>
                         
-                        <!-- FORMULÁRIO MOVIMENTAR PJ (CORRIGIDO) -->
+                        <!-- FORMULÁRIO MOVIMENTAR PJ -->
                         <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 h-fit">
                             <h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white">Movimentar</h3>
                             <form onsubmit="window.adicionarTransacao(event, 'pj')" class="space-y-3">
@@ -289,7 +317,6 @@
                                     </label>
                                 </div>
                                 
-                                <!-- ESTRUTURA VERTICAL PARA EVITAR DUPLICIDADE -->
                                 <div>
                                     <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Descrição</label>
                                     <input type="text" id="pj-desc" placeholder="Ex: Venda de Serviço" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white">
@@ -324,7 +351,7 @@
                         </div>
                     </div>
                     
-                    <div class="mt-0 px-4 md:px-8 pb-6"><h3 class="font-bold text-slate-700 dark:text-white mb-3">Extrato</h3><div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm"><div class="max-h-80 overflow-y-auto"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pj" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div></div>
+                    <div class="mt-0 px-4 md:px-8 pb-6"><h3 class="font-bold text-slate-700 dark:text-white mb-3">Extrato do Mês</h3><div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm"><div class="max-h-80 overflow-y-auto"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pj" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div></div>
                 </div>
 
                 <div id="view-pessoal" class="view-section hidden fade-in"><div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm w-full"><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm"><p class="text-sm text-blue-600 dark:text-blue-400 font-bold">Ganhos</p><h3 class="text-2xl font-bold text-blue-800 dark:text-blue-300" id="pf-receita">R$ 0,00</h3></div><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-orange-500 shadow-sm"><p class="text-sm text-orange-600 dark:text-orange-400 font-bold">Gastos</p><h3 class="text-2xl font-bold text-orange-800 dark:text-orange-300" id="pf-despesa">R$ 0,00</h3></div><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-slate-500 shadow-sm"><div class="flex justify-between"><p class="text-sm text-slate-600 dark:text-slate-400 font-bold">Saldo</p></div><h3 class="text-2xl font-bold text-slate-700 dark:text-white" id="pf-saldo">R$ 0,00</h3></div></div></div><div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 py-6"><div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm h-72"><canvas id="grafico-pf"></canvas></div><div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white">Movimentar</h3><form onsubmit="window.adicionarTransacao(event, 'pf')" class="space-y-3"><div class="flex gap-2"><label class="flex-1 cursor-pointer"><input type="radio" name="pf-tipo" value="entrada" checked class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-blue-100 peer-checked:text-blue-700 dark:peer-checked:bg-blue-900/30 dark:peer-checked:text-blue-400 transition-all font-medium text-sm">Ganho</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="pf-tipo" value="saida" class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-orange-100 peer-checked:text-orange-700 dark:peer-checked:bg-orange-900/30 dark:peer-checked:text-orange-400 transition-all font-medium text-sm">Gasto</div></label></div><div class="grid grid-cols-2 gap-3"><input type="text" id="pf-desc" placeholder="Descrição" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"><input type="number" id="pf-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div class="grid grid-cols-2 gap-3"><select id="pf-modalidade" onchange="window.toggleModalidade('pf')" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white text-sm"><option value="unico">Único</option><option value="recorrente">Recorrente</option><option value="parcelado">Parcelado</option></select><input type="date" id="pf-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div id="pf-parcelas-container" class="hidden"><label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Quantidade</label><input type="number" id="pf-parcelas" value="12" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><button type="submit" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-bold">Registrar</button></form></div></div><div class="mt-0 px-4 md:px-8 pb-6"><h3 class="font-bold text-slate-700 dark:text-white mb-3">Extrato</h3><div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm"><div class="max-h-80 overflow-y-auto"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pf" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div></div></div>
@@ -602,8 +629,6 @@
 
             for(let i=0; i<loop; i++) {
                 let d = desc;
-                // REMOVED text append to description to avoid pollution. 
-                // Using metadata instead for badge.
                 
                 let nd = new Date(dateObj); nd.setMonth(nd.getMonth()+i);
                 
@@ -721,6 +746,12 @@
             renderizar(); // Re-render charts
         }
 
+        // --- FILTER NAVIGATION ---
+        window.mudarMes = function(delta) {
+            window.viewDate.setMonth(window.viewDate.getMonth() + delta);
+            renderizar();
+        };
+
         function renderizar() {
             renderCRM();
             renderScripts();
@@ -785,7 +816,6 @@
                     </div>`;
                     const container = list.lastElementChild.querySelector('.group-container');
                     items.forEach(l => {
-                        // Logic for Buttons based on Group
                         let btns = `
                             <button onclick="window.alterarStatusLead('${l.id}', 'ganho')" class="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors" title="Fechar Venda"><i class="ph-bold ph-check"></i></button>
                             <button onclick="window.alterarStatusLead('${l.id}', 'sem_retorno')" class="p-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors" title="Sem Retorno"><i class="ph-bold ph-clock"></i></button>
@@ -798,10 +828,7 @@
                             btns = `<button onclick="window.alterarStatusLead('${l.id}', 'negociacao')" class="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors" title="Reativar"><i class="ph-bold ph-arrow-u-up-left text-lg"></i></button>`;
                         }
 
-                        // Social Link Logic
                         let socialHtml = l.social ? `<a href="${l.social}" target="_blank" class="text-pink-500 hover:text-pink-600 dark:hover:text-pink-400 p-1.5 rounded-lg hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors" title="Rede Social"><i class="ph-bold ph-instagram-logo text-lg"></i></a>` : '';
-                        
-                        // Doc Logic
                         let docHtml = l.doc ? `<span class="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 truncate max-w-[80px]" title="${l.doc}">${l.doc}</span>` : '';
 
                         container.innerHTML += `
@@ -829,7 +856,7 @@
                     });
                 }
             });
-            // Update Totals
+            
             const neg = window.DB.leads.filter(l => l.status === 'negociacao');
             const ati = window.DB.leads.filter(l => l.status === 'ganho');
             const sem = window.DB.leads.filter(l => l.status === 'sem_retorno');
@@ -845,7 +872,6 @@
             if(document.getElementById('crm-count-inativos')) document.getElementById('crm-count-inativos').innerText = ina.length;
             if(document.getElementById('total-negociacao-list')) document.getElementById('total-negociacao-list').innerText = window.formatMoney(window.DB.leads.reduce((a,b)=>a+b.valor,0));
 
-            // Specialized Views
             const semList = document.getElementById('lista-sem-retorno'); if(semList) { semList.innerHTML = ''; sem.forEach(l => semList.innerHTML += createSimpleCard(l)); }
             const atiList = document.getElementById('lista-ativos-grid'); if(atiList) { atiList.innerHTML = ''; ati.forEach(l => atiList.innerHTML += createSimpleCard(l, true)); }
             const conList = document.getElementById('lista-contratos'); if(conList) { conList.innerHTML = ''; ati.forEach(l => conList.innerHTML += createContractCard(l)); }
@@ -881,8 +907,29 @@
 
         function renderFin(type) {
             const list = type === 'pj' ? window.DB.pj : window.DB.pf;
-            const ent = list.filter(x => x.op === 'entrada').reduce((a,b) => a+b.valor, 0);
-            const sai = list.filter(x => x.op === 'saida').reduce((a,b) => a+b.valor, 0);
+            
+            // --- ATUALIZAÇÃO: Filtro por Mês (PJ) ---
+            let filteredList = list;
+            if (type === 'pj') {
+                const mes = window.viewDate.getMonth();
+                const ano = window.viewDate.getFullYear();
+                
+                // Atualiza o Título do Mês
+                const labelMes = document.getElementById('label-mes-ano');
+                if(labelMes) {
+                    labelMes.innerText = window.viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+                }
+
+                filteredList = list.filter(t => {
+                    const parts = t.data.split('/'); // DD/MM/AAAA
+                    // Cria data em UTC para evitar problemas de fuso
+                    const tDate = new Date(parts[2], parts[1]-1, parts[0]);
+                    return tDate.getMonth() === mes && tDate.getFullYear() === ano;
+                });
+            }
+
+            const ent = filteredList.filter(x => x.op === 'entrada').reduce((a,b) => a+b.valor, 0);
+            const sai = filteredList.filter(x => x.op === 'saida').reduce((a,b) => a+b.valor, 0);
             const sal = ent - sai;
 
             const elRec = document.getElementById(`${type}-receita`); if(elRec) elRec.innerText = window.formatMoney(ent);
@@ -892,8 +939,8 @@
             const table = document.getElementById(`lista-transacoes-${type}`);
             if(table) {
                 table.innerHTML = '';
-                // Improved Sort: By Date Descending
-                const sortedList = [...list].sort((a,b) => {
+                // Sort by Date Descending
+                const sortedList = [...filteredList].sort((a,b) => {
                     const da = a.data.split('/').reverse().join('-');
                     const db = b.data.split('/').reverse().join('-');
                     return new Date(db) - new Date(da) || b.createdAt - a.createdAt;
@@ -901,11 +948,9 @@
 
                 sortedList.forEach(t => {
                     let badge = '';
-                    // Check for modern object structure
                     if(t.parcela) {
                         badge = `<span class="ml-2 text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-200 font-bold tracking-tight">${t.parcela.atual}/${t.parcela.total}</span>`;
                     } 
-                    // Fallback for legacy text format "(1/12)" if existing data has it
                     else if (t.desc.match(/\(\d+\/\d+\)/)) {
                         const match = t.desc.match(/\((\d+\/\d+)\)/);
                         if(match) {
@@ -923,7 +968,6 @@
                 const profit = ent - sai;
                 const reserveRate = window.DB.settings.reinvestRate || 20;
                 
-                // Update Input if not focused (to prevent overwriting while typing)
                 const inputReserva = document.getElementById('input-percentual-reserva');
                 if(inputReserva && document.activeElement !== inputReserva) {
                     inputReserva.value = reserveRate;
@@ -934,7 +978,6 @@
                 if(document.getElementById('val-reserva-empresa')) document.getElementById('val-reserva-empresa').innerText = window.formatMoney(reserve);
                 if(document.getElementById('val-meu-salario')) document.getElementById('val-meu-salario').innerText = window.formatMoney(salary);
 
-                // Health Bar Logic
                 let margin = ent > 0 ? ((ent - sai) / ent) * 100 : 0;
                 const elStatus = document.getElementById('label-saude-status');
                 const elBar = document.getElementById('bar-saude-fill');
@@ -957,15 +1000,11 @@
 
         function updateChart(type, ent, sai) {
             const ctx = document.getElementById(`grafico-${type}`); if(!ctx) return;
-            
-            // Configurações visuais baseadas no tema
             const isDark = document.documentElement.classList.contains('dark');
-            const textColor = isDark ? '#94a3b8' : '#64748b'; // Slate-400 / Slate-500
+            const textColor = isDark ? '#94a3b8' : '#64748b'; 
             const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
-            
-            // Cores específicas por tipo (PJ vs PF)
-            const colorEntrada = type === 'pj' ? '#10b981' : '#3b82f6'; // Emerald ou Blue
-            const colorSaida = type === 'pj' ? '#f43f5e' : '#f97316';   // Rose ou Orange
+            const colorEntrada = type === 'pj' ? '#10b981' : '#3b82f6'; 
+            const colorSaida = type === 'pj' ? '#f43f5e' : '#f97316';   
 
             const data = { 
                 labels: ['Receitas', 'Despesas'], 
@@ -973,8 +1012,8 @@
                     label: 'Valor',
                     data: [ent, sai], 
                     backgroundColor: [colorEntrada, colorSaida], 
-                    borderRadius: 8, // Bordas arredondadas suaves
-                    barThickness: 50, // Largura fixa para evitar barras "gordas"
+                    borderRadius: 8, 
+                    barThickness: 50, 
                     maxBarThickness: 70
                 }] 
             };
@@ -1010,11 +1049,10 @@
                         }, 
                         y: { 
                             beginAtZero: true, 
-                            grid: { color: gridColor, borderDash: [4, 4], drawBorder: false }, // Grade pontilhada sutil
+                            grid: { color: gridColor, borderDash: [4, 4], drawBorder: false }, 
                             ticks: { 
                                 color: textColor,
                                 callback: function(value) {
-                                    // Abrevia valores altos (ex: 1k, 1.5k) para limpar o visual
                                     if(value >= 1000) return 'R$ ' + (value/1000).toFixed(0) + 'k';
                                     return value;
                                 }
