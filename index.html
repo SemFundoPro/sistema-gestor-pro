@@ -63,10 +63,10 @@
             settings: JSON.parse(localStorage.getItem('gestor_settings')) || { reinvestRate: 20 }
         };
         window.isOnline = false;
-        // Global visual state
+        
+        // Define Visual Helpers Globally IMMEDIATELY
         window.showValues = localStorage.getItem('gestor_show_values') !== 'false';
         
-        // Define formatMoney globally immediately to prevent reference errors
         window.formatMoney = function(val) {
             if (!window.showValues) return 'R$ •••••';
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
@@ -177,7 +177,6 @@
             <main class="flex-1 overflow-y-auto scroll-smooth relative" id="main-scroll-area">
                 <div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-lg shadow-xl z-[300] font-medium transform transition-all duration-300 translate-y-10 opacity-0"></div>
 
-                <!-- VIEWS COMPLETA (Visual) -->
                 <!-- CRM -->
                 <div id="view-crm" class="view-section fade-in">
                     <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all w-full">
@@ -518,7 +517,7 @@
                     items.forEach(l => {
                         let btns = `<button onclick="window.alterarStatusLead('${l.id}', 'ganho')" class="p-2 bg-emerald-500 text-white rounded"><i class="ph-bold ph-check"></i></button><button onclick="window.alterarStatusLead('${l.id}', 'sem_retorno')" class="p-2 bg-amber-500 text-white rounded"><i class="ph-bold ph-clock"></i></button><button onclick="window.alterarStatusLead('${l.id}', 'perdido')" class="p-2 bg-rose-500 text-white rounded"><i class="ph-bold ph-x"></i></button>`;
                         if(g.id === 'ativos') btns = `<button onclick="window.alterarStatusLead('${l.id}', 'inativo')" class="px-3 py-1 bg-slate-200 text-slate-700 text-xs rounded font-bold">Desativar</button>`;
-                        container.innerHTML += `<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center shadow-sm gap-4"><div><div class="font-bold text-slate-800 dark:text-white text-lg">${l.nome}</div><div class="text-sm text-slate-500">${l.empresa||''}</div><div class="text-blue-600 font-bold mt-1">${formatMoney(l.valor)}</div></div><div class="flex gap-2"><button onclick="editarValorLead('${l.id}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="window.excluirLead('${l.id}')" class="p-2 text-slate-400 hover:text-red-500"><i class="ph-bold ph-trash"></i></button>${btns}</div></div>`;
+                        container.innerHTML += `<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center shadow-sm gap-4"><div><div class="font-bold text-slate-800 dark:text-white text-lg">${l.nome}</div><div class="text-sm text-slate-500">${l.empresa||''}</div><div class="text-blue-600 font-bold mt-1">${window.formatMoney(l.valor)}</div></div><div class="flex gap-2"><button onclick="editarValorLead('${l.id}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="window.excluirLead('${l.id}')" class="p-2 text-slate-400 hover:text-red-500"><i class="ph-bold ph-trash"></i></button>${btns}</div></div>`;
                     });
                 }
             });
@@ -528,15 +527,15 @@
             const sem = window.DB.leads.filter(l => l.status === 'sem_retorno');
             const ina = window.DB.leads.filter(l => ['perdido','inativo'].includes(l.status));
             
-            if(document.getElementById('crm-potencial')) document.getElementById('crm-potencial').innerText = formatMoney(neg.reduce((a,b)=>a+b.valor,0));
-            if(document.getElementById('crm-ativos')) document.getElementById('crm-ativos').innerText = formatMoney(ati.reduce((a,b)=>a+b.valor,0));
+            if(document.getElementById('crm-potencial')) document.getElementById('crm-potencial').innerText = window.formatMoney(neg.reduce((a,b)=>a+b.valor,0));
+            if(document.getElementById('crm-ativos')) document.getElementById('crm-ativos').innerText = window.formatMoney(ati.reduce((a,b)=>a+b.valor,0));
             if(document.getElementById('crm-count-negociacao')) document.getElementById('crm-count-negociacao').innerText = neg.length;
-            if(document.getElementById('crm-sem-retorno')) document.getElementById('crm-sem-retorno').innerText = formatMoney(sem.reduce((a,b)=>a+b.valor,0));
+            if(document.getElementById('crm-sem-retorno')) document.getElementById('crm-sem-retorno').innerText = window.formatMoney(sem.reduce((a,b)=>a+b.valor,0));
             if(document.getElementById('crm-count-sem-retorno')) document.getElementById('crm-count-sem-retorno').innerText = sem.length;
             if(document.getElementById('crm-count-ativos')) document.getElementById('crm-count-ativos').innerText = ati.length;
-            if(document.getElementById('crm-inativos')) document.getElementById('crm-inativos').innerText = formatMoney(ina.reduce((a,b)=>a+b.valor,0));
+            if(document.getElementById('crm-inativos')) document.getElementById('crm-inativos').innerText = window.formatMoney(ina.reduce((a,b)=>a+b.valor,0));
             if(document.getElementById('crm-count-inativos')) document.getElementById('crm-count-inativos').innerText = ina.length;
-            if(document.getElementById('total-negociacao-list')) document.getElementById('total-negociacao-list').innerText = formatMoney(window.DB.leads.reduce((a,b)=>a+b.valor,0));
+            if(document.getElementById('total-negociacao-list')) document.getElementById('total-negociacao-list').innerText = window.formatMoney(window.DB.leads.reduce((a,b)=>a+b.valor,0));
 
             // Specialized Views
             const semList = document.getElementById('lista-sem-retorno'); if(semList) { semList.innerHTML = ''; sem.forEach(l => semList.innerHTML += createSimpleCard(l)); }
@@ -546,7 +545,7 @@
         }
 
         function createSimpleCard(l, active=false) {
-            return `<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 mb-2 flex justify-between items-center shadow-sm"><div><div class="font-bold dark:text-white">${l.nome}</div><div class="text-sm text-slate-500">${l.empresa||''}</div></div><div class="text-right"><div class="font-bold text-blue-600">${formatMoney(l.valor)}</div></div></div>`;
+            return `<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 mb-2 flex justify-between items-center shadow-sm"><div><div class="font-bold dark:text-white">${l.nome}</div><div class="text-sm text-slate-500">${l.empresa||''}</div></div><div class="text-right"><div class="font-bold text-blue-600">${window.formatMoney(l.valor)}</div></div></div>`;
         }
 
         function createContractCard(l) {
@@ -565,10 +564,10 @@
         function renderNotas() {
             const list = document.getElementById('lista-notas'); if(!list) return;
             const total = window.DB.notas.reduce((a,b)=>a+b.valor,0);
-            if(document.getElementById('total-notas')) document.getElementById('total-notas').innerText = formatMoney(total);
+            if(document.getElementById('total-notas')) document.getElementById('total-notas').innerText = window.formatMoney(total);
             list.innerHTML = '';
             window.DB.notas.forEach(n => {
-                list.innerHTML += `<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex justify-between items-center mb-2"><div><div class="font-bold dark:text-white">#${n.numero} - ${n.cliente}</div><div class="text-xs text-slate-500">${n.data}</div></div><div class="flex items-center gap-3"><span class="font-bold text-slate-700 dark:text-white">${formatMoney(n.valor)}</span>${n.link ? `<a href="${n.link}" target="_blank" class="text-indigo-500"><i class="ph-bold ph-link"></i></a>` : ''}<button onclick="window.excluirNota('${n.id}')" class="text-slate-300 hover:text-red-500"><i class="ph-bold ph-trash"></i></button></div></div>`;
+                list.innerHTML += `<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex justify-between items-center mb-2"><div><div class="font-bold dark:text-white">#${n.numero} - ${n.cliente}</div><div class="text-xs text-slate-500">${n.data}</div></div><div class="flex items-center gap-3"><span class="font-bold text-slate-700 dark:text-white">${window.formatMoney(n.valor)}</span>${n.link ? `<a href="${n.link}" target="_blank" class="text-indigo-500"><i class="ph-bold ph-link"></i></a>` : ''}<button onclick="window.excluirNota('${n.id}')" class="text-slate-300 hover:text-red-500"><i class="ph-bold ph-trash"></i></button></div></div>`;
             });
         }
 
@@ -578,15 +577,15 @@
             const sai = list.filter(x => x.op === 'saida').reduce((a,b) => a+b.valor, 0);
             const sal = ent - sai;
 
-            const elRec = document.getElementById(`${type}-receita`); if(elRec) elRec.innerText = formatMoney(ent);
-            const elDes = document.getElementById(`${type}-despesa`); if(elDes) elDes.innerText = formatMoney(sai);
-            const elSal = document.getElementById(`${type}-saldo`); if(elSal) { elSal.innerText = formatMoney(sal); elSal.className = `text-2xl font-bold ${sal>=0 ? 'text-slate-700 dark:text-white' : 'text-rose-500'}`; }
+            const elRec = document.getElementById(`${type}-receita`); if(elRec) elRec.innerText = window.formatMoney(ent);
+            const elDes = document.getElementById(`${type}-despesa`); if(elDes) elDes.innerText = window.formatMoney(sai);
+            const elSal = document.getElementById(`${type}-saldo`); if(elSal) { elSal.innerText = window.formatMoney(sal); elSal.className = `text-2xl font-bold ${sal>=0 ? 'text-slate-700 dark:text-white' : 'text-rose-500'}`; }
 
             const table = document.getElementById(`lista-transacoes-${type}`);
             if(table) {
                 table.innerHTML = '';
                 [...list].sort((a,b) => b.createdAt - a.createdAt).forEach(t => {
-                    table.innerHTML += `<tr class="border-b border-slate-100 dark:border-slate-800"><td class="p-3"><div class="font-medium dark:text-white">${t.desc}</div><div class="text-xs text-slate-400">${t.data}</div></td><td class="p-3 text-right font-mono ${t.op==='entrada'?'text-emerald-500':'text-rose-500'}">${t.op==='entrada'?'+':'-'} ${formatMoney(t.valor)}</td><td class="p-3 text-center w-8"><button onclick="window.excluirTransacao('${t.id}', '${type}')" class="text-slate-300 hover:text-red-500"><i class="ph-bold ph-trash"></i></button></td></tr>`;
+                    table.innerHTML += `<tr class="border-b border-slate-100 dark:border-slate-800"><td class="p-3"><div class="font-medium dark:text-white">${t.desc}</div><div class="text-xs text-slate-400">${t.data}</div></td><td class="p-3 text-right font-mono ${t.op==='entrada'?'text-emerald-500':'text-rose-500'}">${t.op==='entrada'?'+':'-'} ${window.formatMoney(t.valor)}</td><td class="p-3 text-center w-8"><button onclick="window.excluirTransacao('${t.id}', '${type}')" class="text-slate-300 hover:text-red-500"><i class="ph-bold ph-trash"></i></button></td></tr>`;
                 });
             }
             updateChart(type, ent, sai);
@@ -596,8 +595,8 @@
                 const reserveRate = window.DB.settings.reinvestRate || 20;
                 const reserve = profit > 0 ? profit * (reserveRate/100) : 0;
                 const salary = profit > 0 ? profit - reserve : 0;
-                if(document.getElementById('val-reserva-empresa')) document.getElementById('val-reserva-empresa').innerText = formatMoney(reserve);
-                if(document.getElementById('val-meu-salario')) document.getElementById('val-meu-salario').innerText = formatMoney(salary);
+                if(document.getElementById('val-reserva-empresa')) document.getElementById('val-reserva-empresa').innerText = window.formatMoney(reserve);
+                if(document.getElementById('val-meu-salario')) document.getElementById('val-meu-salario').innerText = window.formatMoney(salary);
             }
         }
 
