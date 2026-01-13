@@ -50,8 +50,15 @@
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 h-screen w-screen overflow-hidden flex" id="body-container">
 
-    <!-- INITIAL STATE SETUP -->
+    <!-- INITIAL STATE SETUP & THEME -->
     <script>
+        // 1. TEMA DARK (Executar imediatamente para evitar flash branco)
+        if (localStorage.getItem('gestor_theme') === 'dark' || (!('gestor_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
         // Setup Global DB immediately to avoid race conditions
         window.DB = {
             leads: JSON.parse(localStorage.getItem('gestor_leads')) || [],
@@ -490,6 +497,12 @@
             
             renderizar();
         }
+        
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('gestor_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            renderizar(); // Re-render charts
+        }
 
         function renderizar() {
             renderCRM();
@@ -602,8 +615,24 @@
 
         function updateChart(type, ent, sai) {
             const ctx = document.getElementById(`grafico-${type}`); if(!ctx) return;
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#94a3b8' : '#64748b';
+            const gridColor = isDark ? '#334155' : '#e2e8f0';
+            
             const data = { labels: ['Entradas', 'Saídas'], datasets: [{ data: [ent, sai], backgroundColor: [type==='pj'?'#10b981':'#3b82f6', type==='pj'?'#f43f5e':'#f97316'], borderRadius: 5 }] };
-            const config = { type: 'bar', data: data, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } } };
+            const config = { 
+                type: 'bar', 
+                data: data, 
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        x: { display: false }, 
+                        y: { display: false } 
+                    } 
+                } 
+            };
             if(type === 'pj') { if(chartPJ) chartPJ.destroy(); chartPJ = new Chart(ctx, config); }
             else { if(chartPF) chartPF.destroy(); chartPF = new Chart(ctx, config); }
         }
