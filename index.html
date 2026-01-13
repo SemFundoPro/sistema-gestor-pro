@@ -131,7 +131,7 @@
             <div id="licensed-to" class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 flex justify-center gap-1"><span class="hidden">Licenciado para:</span> <span>...</span></div>
             <div id="days-remaining" class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-8"></div>
             <form onsubmit="handleLogin(event)" class="space-y-5 text-left">
-                <div><div class="relative group"><div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-lock-key text-slate-400 group-focus-within:text-blue-400 transition-colors"></i></div><input type="password" id="login-pass" placeholder="Senha de Acesso" class="w-full py-4 pl-12 pr-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm"><button type="button" onclick="togglePassVisibility()" class="absolute right-4 top-4 text-slate-400 hover:text-blue-400 cursor-pointer transition-colors"><i id="eye-icon" class="ph-bold ph-eye text-xl"></i></button></div></div>
+                <div><div class="relative group"><div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-lock-key text-slate-400 group-focus-within:text-blue-400 transition-colors"></i></div><input type="password" id="login-pass" placeholder="Senha de Acesso" class="w-full py-4 pl-12 pr-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm"><button type="button" onclick="window.togglePassVisibility()" class="absolute right-4 top-4 text-slate-400 hover:text-blue-400 cursor-pointer transition-colors"><i id="eye-icon" class="ph-bold ph-eye text-xl"></i></button></div></div>
                 <div id="confirm-pass-container" class="hidden"><div class="relative group"><div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-shield-check text-slate-400 group-focus-within:text-blue-400 transition-colors"></i></div><input type="password" id="login-pass-confirm" placeholder="Confirmar Senha" class="w-full py-4 pl-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm"></div></div>
                 <button type="submit" id="login-btn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 transition-all transform active:scale-[0.98] border border-white/10">Entrar</button>
             </form>
@@ -614,6 +614,19 @@
             // Inicia animação
             if(typeof initLoginAnimation === 'function') initLoginAnimation();
         };
+        
+        // --- TOGGLE PASSWORD VISIBILITY ---
+        window.togglePassVisibility = function() {
+            const input = document.getElementById('login-pass');
+            const icon = document.getElementById('eye-icon');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace('ph-eye', 'ph-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.replace('ph-eye-slash', 'ph-eye');
+            }
+        };
 
     </script>
 
@@ -1038,6 +1051,19 @@
             document.getElementById('app-content').classList.add('blur-content');
             document.getElementById('login-pass').value = '';
             initLoginAnimation();
+        };
+        
+        // --- TOGGLE PASSWORD VISIBILITY ---
+        window.togglePassVisibility = function() {
+            const input = document.getElementById('login-pass');
+            const icon = document.getElementById('eye-icon');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace('ph-eye', 'ph-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.replace('ph-eye-slash', 'ph-eye');
+            }
         };
 
         checkLicense();
