@@ -602,9 +602,20 @@
 
             for(let i=0; i<loop; i++) {
                 let d = desc;
-                if(modalidade === 'parcelado') d = `${desc} (${i+1}/${loop})`;
+                // REMOVED text append to description to avoid pollution. 
+                // Using metadata instead for badge.
+                
                 let nd = new Date(dateObj); nd.setMonth(nd.getMonth()+i);
-                const tData = { op, desc: d, valor: v, data: nd.toLocaleDateString('pt-BR'), modalidade, createdAt: Date.now()+i };
+                
+                const tData = { 
+                    op, 
+                    desc: d, 
+                    valor: v, 
+                    data: nd.toLocaleDateString('pt-BR'), 
+                    modalidade,
+                    parcela: modalidade === 'parcelado' ? { atual: i+1, total: loop } : null,
+                    createdAt: Date.now()+i 
+                };
                 
                 if(window.isOnline && currentUser) await addDoc(collection(db, 'users', currentUser.uid, col), tData);
                 else list.push({id: String(Date.now()+i), ...tData});
@@ -881,8 +892,29 @@
             const table = document.getElementById(`lista-transacoes-${type}`);
             if(table) {
                 table.innerHTML = '';
-                [...list].sort((a,b) => b.createdAt - a.createdAt).forEach(t => {
-                    table.innerHTML += `<tr class="border-b border-slate-100 dark:border-slate-800"><td class="p-3"><div class="font-medium dark:text-white">${t.desc}</div><div class="text-xs text-slate-400">${t.data}</div></td><td class="p-3 text-right font-mono ${t.op==='entrada'?'text-emerald-500':'text-rose-500'}">${t.op==='entrada'?'+':'-'} ${window.formatMoney(t.valor)}</td><td class="p-3 text-center w-8"><button onclick="window.excluirTransacao('${t.id}', '${type}')" class="text-slate-300 hover:text-red-500"><i class="ph-bold ph-trash"></i></button></td></tr>`;
+                // Improved Sort: By Date Descending
+                const sortedList = [...list].sort((a,b) => {
+                    const da = a.data.split('/').reverse().join('-');
+                    const db = b.data.split('/').reverse().join('-');
+                    return new Date(db) - new Date(da) || b.createdAt - a.createdAt;
+                });
+
+                sortedList.forEach(t => {
+                    let badge = '';
+                    // Check for modern object structure
+                    if(t.parcela) {
+                        badge = `<span class="ml-2 text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-200 font-bold tracking-tight">${t.parcela.atual}/${t.parcela.total}</span>`;
+                    } 
+                    // Fallback for legacy text format "(1/12)" if existing data has it
+                    else if (t.desc.match(/\(\d+\/\d+\)/)) {
+                        const match = t.desc.match(/\((\d+\/\d+)\)/);
+                        if(match) {
+                             t.desc = t.desc.replace(match[0], '').trim();
+                             badge = `<span class="ml-2 text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 font-bold">${match[1]}</span>`;
+                        }
+                    }
+
+                    table.innerHTML += `<tr class="border-b border-slate-100 dark:border-slate-800"><td class="p-3"><div class="font-medium dark:text-white flex items-center">${t.desc} ${badge}</div><div class="text-xs text-slate-400">${t.data}</div></td><td class="p-3 text-right font-mono ${t.op==='entrada'?'text-emerald-500':'text-rose-500'}">${t.op==='entrada'?'+':'-'} ${window.formatMoney(t.valor)}</td><td class="p-3 text-center w-8"><button onclick="window.excluirTransacao('${t.id}', '${type}')" class="text-slate-300 hover:text-red-500"><i class="ph-bold ph-trash"></i></button></td></tr>`;
                 });
             }
             updateChart(type, ent, sai);
