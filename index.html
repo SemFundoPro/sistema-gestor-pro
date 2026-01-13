@@ -288,23 +288,38 @@
                                         <div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-rose-100 peer-checked:text-rose-700 dark:peer-checked:bg-rose-900/30 dark:peer-checked:text-rose-400 transition-all font-medium text-sm">Saída</div>
                                     </label>
                                 </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <input type="text" id="pj-desc" placeholder="Descrição" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white">
-                                    <input type="number" id="pj-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white">
+                                
+                                <!-- ESTRUTURA VERTICAL PARA EVITAR DUPLICIDADE -->
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Descrição</label>
+                                    <input type="text" id="pj-desc" placeholder="Ex: Venda de Serviço" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white">
                                 </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <select id="pj-modalidade" onchange="window.toggleModalidade('pj')" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white text-sm">
-                                        <option value="unico">Único</option>
-                                        <option value="recorrente">Recorrente</option>
-                                        <option value="parcelado">Parcelado</option>
-                                    </select>
-                                    <input type="date" id="pj-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white">
+
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Valor (R$)</label>
+                                    <input type="number" id="pj-valor" placeholder="0,00" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white text-lg font-bold">
                                 </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Frequência</label>
+                                        <select id="pj-modalidade" onchange="window.toggleModalidade('pj')" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white text-sm">
+                                            <option value="unico">Único</option>
+                                            <option value="recorrente">Recorrente</option>
+                                            <option value="parcelado">Parcelado</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Data</label>
+                                        <input type="date" id="pj-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white">
+                                    </div>
+                                </div>
+
                                 <div id="pj-parcelas-container" class="hidden">
                                     <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Quantidade</label>
                                     <input type="number" id="pj-parcelas" value="12" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white">
                                 </div>
-                                <button type="submit" class="w-full bg-slate-800 text-white py-2.5 rounded-lg font-bold">Confirmar</button>
+                                <button type="submit" class="w-full bg-slate-800 text-white py-2.5 rounded-lg font-bold hover:bg-slate-900 transition-colors">Confirmar</button>
                             </form>
                         </div>
                     </div>
