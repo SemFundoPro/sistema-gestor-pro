@@ -601,33 +601,6 @@
             if(!window.isOnline) window.renderizar();
         };
 
-        // --- BLOQUEAR TELA ---
-        window.bloquearTela = function() {
-            // Remove as classes que escondem o overlay
-            document.getElementById('login-overlay').classList.remove('hidden');
-            // Garante que a opacidade volte ao normal e os eventos funcionem
-            document.getElementById('login-overlay').classList.remove('opacity-0', 'pointer-events-none');
-            
-            document.getElementById('app-content').classList.add('blur-content');
-            document.getElementById('login-pass').value = '';
-            
-            // Inicia animação
-            if(typeof initLoginAnimation === 'function') initLoginAnimation();
-        };
-        
-        // --- TOGGLE PASSWORD VISIBILITY ---
-        window.togglePassVisibility = function() {
-            const input = document.getElementById('login-pass');
-            const icon = document.getElementById('eye-icon');
-            if (input.type === "password") {
-                input.type = "text";
-                icon.classList.replace('ph-eye', 'ph-eye-slash');
-            } else {
-                input.type = "password";
-                icon.classList.replace('ph-eye-slash', 'ph-eye');
-            }
-        };
-
     </script>
 
     <!-- UI & RENDER SCRIPT -->
@@ -966,7 +939,6 @@
             const key = localStorage.getItem('gemini_api_key');
             if(!titulo) return alert('Digite um título');
             if(!key) return window.abrirConfig();
-            
             const btn = document.getElementById('btn-gerar-script');
             btn.innerHTML = 'Gerando...';
             fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, {
@@ -991,31 +963,9 @@
         }
         window.saveLocal = saveLocal; window.renderizar = renderizar;
 
-        function checkLicense() {
-            const lic = JSON.parse(localStorage.getItem('gestor_license'));
-            if(!lic) return showAct('Ativação Necessária', 'Insira seus dados.');
-            
-            const today = new Date(); today.setHours(0,0,0,0);
-            const p = lic.date.split('/'); const exp = new Date(`${p[2]}-${p[1]}-${p[0]}T00:00:00`);
-            if(exp < today) return showAct('Expirado', 'Sua licença venceu.');
-            
-            const h = CryptoJS.HmacSHA256(`${lic.name.toLowerCase()}|${p[2]}-${p[1]}-${p[0]}`, SYSTEM_SECRET).toString().substring(0,16).toUpperCase().match(/.{1,4}/g).join('-');
-            if(lic.key !== h) return showAct('Inválido', 'Chave incorreta.');
-
-            document.getElementById('license-overlay').classList.add('hidden');
-            document.getElementById('header-license-info').innerText = 'Ativo';
-            document.getElementById('days-remaining').innerText = `Expira em ${Math.ceil((exp-today)/(1000*60*60*24))} dias`;
-            checkAuth();
-        }
-
-        function showAct(t, m) { document.getElementById('license-overlay').classList.remove('hidden'); document.getElementById('app-content').classList.add('blur-content'); document.getElementById('lic-title').innerText = t; document.getElementById('lic-msg').innerText = m; }
-        function handleActivation(e) { e.preventDefault(); const n=document.getElementById('lic-name').value.trim(), d=document.getElementById('lic-date').value.trim(), k=document.getElementById('lic-key').value.trim(); if(!n||!d||!k) return alert("Preencha tudo"); const p=d.split('/'); const di=`${p[2]}-${p[1]}-${p[0]}`; const h=CryptoJS.HmacSHA256(`${n.toLowerCase()}|${di}`, SYSTEM_SECRET).toString().substring(0,16).toUpperCase().match(/.{1,4}/g).join('-'); if(k.toUpperCase()===h) { localStorage.setItem('gestor_license', JSON.stringify({name:n,date:d,key:k.toUpperCase()})); alert("Ativado!"); location.reload(); } else alert("Chave inválida"); }
         function emergencyReset() { if(confirm("Resetar?")) { localStorage.clear(); location.reload(); } }
-        
-        function checkAuth() { if(!localStorage.getItem('gestor_auth')) { document.getElementById('login-title').innerText="Crie sua Senha"; document.getElementById('confirm-pass-container').classList.remove('hidden'); } document.getElementById('login-overlay').classList.remove('hidden'); }
         function handleLogin(e) { e.preventDefault(); const p=document.getElementById('login-pass').value, c=document.getElementById('login-pass-confirm').value, s=localStorage.getItem('gestor_auth'); if(!s) { if(p.length<4) return alert("Mínimo 4"); if(p!==c) return alert("Senhas diferem"); localStorage.setItem('gestor_auth',CryptoJS.SHA256(p).toString()); unlock(); } else { if(CryptoJS.SHA256(p).toString()===s) unlock(); else alert("Senha errada"); } }
         function unlock() { document.getElementById('login-overlay').classList.add('hidden'); document.getElementById('app-content').classList.remove('blur-content'); renderizar(); }
-        
         function toggleModalidade(t) { const s=document.getElementById(`${t}-modalidade`), c=document.getElementById(`${t}-parcelas-container`); if(s.value==='unico') c.classList.add('hidden'); else c.classList.remove('hidden'); }
         window.toggleModalidade = toggleModalidade;
         
@@ -1037,36 +987,125 @@
         function abrirConfig() { document.getElementById('input-api-key').value = localStorage.getItem('gemini_api_key')||''; document.getElementById('modal-config').classList.remove('hidden'); }
         function fecharConfig() { document.getElementById('modal-config').classList.add('hidden'); }
         
-        // Setup Login Animation
+        // Setup Login Animation (called on load and on lock)
         function initLoginAnimation() {
-            const canvas = document.getElementById('login-bg-canvas'); if(!canvas) return;
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            // Particles logic can be re-added here if needed for visual flair
-        }
-        
-        // --- BLOQUEAR TELA ---
-        window.bloquearTela = function() {
-            document.getElementById('login-overlay').classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-            document.getElementById('app-content').classList.add('blur-content');
-            document.getElementById('login-pass').value = '';
-            initLoginAnimation();
-        };
-        
-        // --- TOGGLE PASSWORD VISIBILITY ---
-        window.togglePassVisibility = function() {
-            const input = document.getElementById('login-pass');
-            const icon = document.getElementById('eye-icon');
-            if (input.type === "password") {
-                input.type = "text";
-                icon.classList.replace('ph-eye', 'ph-eye-slash');
-            } else {
-                input.type = "password";
-                icon.classList.replace('ph-eye-slash', 'ph-eye');
+            const canvas = document.getElementById('login-bg-canvas'); 
+            if(!canvas) return;
+            
+            // Prevent stacking loops/listeners if called multiple times
+            if(canvas.getAttribute('data-init') === 'true') {
+                if(window.animationFrameId) cancelAnimationFrame(window.animationFrameId);
+                window.animateParticles(canvas); // Restart loop
+                return;
             }
-        };
+            canvas.setAttribute('data-init', 'true');
 
+            const ctx = canvas.getContext('2d');
+            let width, height, particles = [], mouse = {x: null, y: null};
+
+            const resize = () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; initParts(); };
+            window.addEventListener('resize', resize);
+            window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+            window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
+
+            class P {
+                constructor(){ this.reset(); }
+                reset(){ this.x = Math.random()*width; this.y = Math.random()*height; this.vx = (Math.random()-.5)*0.5; this.vy = (Math.random()-.5)*0.5; this.size = Math.random()*2+1; }
+                update(){ this.x+=this.vx; this.y+=this.vy; if(this.x<0||this.x>width) this.vx*=-1; if(this.y<0||this.y>height) this.vy*=-1; }
+                draw(){ ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fillStyle='rgba(100,150,255,0.5)'; ctx.fill(); }
+            }
+
+            function initParts(){ particles=[]; const cnt = Math.floor(width*height/15000); for(let i=0;i<cnt;i++) particles.push(new P()); }
+            
+            window.animateParticles = function(cvs) {
+                if(document.getElementById('login-overlay').classList.contains('hidden')) return;
+                ctx.clearRect(0,0,width,height);
+                if(mouse.x){ const g = ctx.createRadialGradient(mouse.x,mouse.y,0,mouse.x,mouse.y,200); g.addColorStop(0,'rgba(59,130,246,0.15)'); g.addColorStop(1,'transparent'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(mouse.x,mouse.y,200,0,Math.PI*2); ctx.fill(); }
+                particles.forEach((p, i) => {
+                    p.update(); p.draw();
+                    for(let j=i+1; j<particles.length; j++){ const dx=p.x-particles[j].x, dy=p.y-particles[j].y, d=Math.hypot(dx,dy); if(d<120){ ctx.beginPath(); ctx.strokeStyle=`rgba(100,116,139,${(1-d/120)*0.3})`; ctx.lineWidth=1; ctx.moveTo(p.x,p.y); ctx.lineTo(particles[j].x,particles[j].y); ctx.stroke(); } }
+                    if(mouse.x){ const dx=p.x-mouse.x, dy=p.y-mouse.y, d=Math.hypot(dx,dy); if(d<150){ ctx.beginPath(); ctx.strokeStyle=`rgba(147,197,253,${(1-d/150)*0.5})`; ctx.lineWidth=1; ctx.moveTo(p.x,p.y); ctx.lineTo(mouse.x,mouse.y); ctx.stroke(); } }
+                });
+                window.animationFrameId = requestAnimationFrame(() => window.animateParticles(cvs));
+            };
+            resize();
+            window.animateParticles(canvas);
+        }
+
+        // --- RESTORED LICENSE & AUTH FUNCTIONS ---
+
+        function checkLicense() {
+            const lic = JSON.parse(localStorage.getItem('gestor_license'));
+            if(!lic) return showAct('Ativação Necessária', 'Insira seus dados.');
+            
+            const today = new Date(); today.setHours(0,0,0,0);
+            const p = lic.date.split('/'); 
+            const exp = new Date(`${p[2]}-${p[1]}-${p[0]}T00:00:00`);
+            
+            if(isNaN(exp.getTime())) return showAct('Erro', 'Formato de data inválido.');
+            if(exp < today) return showAct('Expirado', 'Sua licença venceu.');
+            
+            const h = CryptoJS.HmacSHA256(`${lic.name.toLowerCase()}|${p[2]}-${p[1]}-${p[0]}`, SYSTEM_SECRET).toString().substring(0,16).toUpperCase().match(/.{1,4}/g).join('-');
+            if(lic.key !== h) return showAct('Inválido', 'Chave incorreta.');
+
+            document.getElementById('license-overlay').classList.add('hidden');
+            document.getElementById('header-license-info').innerText = 'Ativo';
+            
+            const diff = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+            const dayEl = document.getElementById('days-remaining');
+            if(dayEl) dayEl.innerText = `Expira em ${diff} dias`;
+            
+            checkAuth();
+        }
+
+        function showAct(t, m) { 
+            document.getElementById('license-overlay').classList.remove('hidden'); 
+            document.getElementById('app-content').classList.add('blur-content'); 
+            document.getElementById('lic-title').innerText = t; 
+            document.getElementById('lic-msg').innerText = m; 
+        }
+
+        function handleActivation(e) { 
+            e.preventDefault(); 
+            const n=document.getElementById('lic-name').value.trim();
+            const d=document.getElementById('lic-date').value.trim();
+            const k=document.getElementById('lic-key').value.trim(); 
+            
+            if(!n||!d||!k) return alert("Preencha tudo"); 
+            
+            const p=d.split('/'); 
+            if(p.length !== 3) return alert("Data inválida. Use DD/MM/AAAA");
+            
+            const di=`${p[2]}-${p[1]}-${p[0]}`; 
+            const h=CryptoJS.HmacSHA256(`${n.toLowerCase()}|${di}`, SYSTEM_SECRET).toString().substring(0,16).toUpperCase().match(/.{1,4}/g).join('-'); 
+            
+            if(k.toUpperCase()===h) { 
+                localStorage.setItem('gestor_license', JSON.stringify({name:n,date:d,key:k.toUpperCase()})); 
+                alert("Ativado!"); 
+                location.reload(); 
+            } else {
+                alert("Chave inválida"); 
+            }
+        }
+
+        function checkAuth() { 
+            if(!localStorage.getItem('gestor_auth')) { 
+                document.getElementById('login-title').innerText="Crie sua Senha"; 
+                document.getElementById('confirm-pass-container').classList.remove('hidden'); 
+            } 
+            document.getElementById('login-overlay').classList.remove('hidden'); 
+            // Call animation logic here if needed, or rely on window load
+            if(typeof window.animateParticles === 'function') {
+                const cvs = document.getElementById('login-bg-canvas');
+                window.animateParticles(cvs);
+            } else {
+                 initLoginAnimation();
+            }
+        }
+
+        // Start App
         checkLicense();
+
     </script>
 </body>
 </html>
