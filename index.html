@@ -52,14 +52,14 @@
 
     <!-- INITIAL STATE SETUP -->
     <script>
-        // 1. TEMA DARK (Executar imediatamente para evitar flash branco)
+        // 1. TEMA DARK
         if (localStorage.getItem('gestor_theme') === 'dark' || (!('gestor_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
 
-        // Setup Global DB immediately to avoid race conditions
+        // Setup Global DB immediately
         window.DB = {
             leads: JSON.parse(localStorage.getItem('gestor_leads')) || [],
             scripts: JSON.parse(localStorage.getItem('gestor_scripts')) || [],
@@ -71,12 +71,27 @@
         };
         window.isOnline = false;
         
-        // Define Visual Helpers Globally IMMEDIATELY
+        // Define Visual Helpers Globally
         window.showValues = localStorage.getItem('gestor_show_values') !== 'false';
         
         window.formatMoney = function(val) {
             if (!window.showValues) return 'R$ •••••';
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+        };
+
+        // --- TOGGLE PASSWORD VISIBILITY ---
+        window.togglePassVisibility = function() {
+            const input = document.getElementById('login-pass');
+            const icon = document.getElementById('eye-icon');
+            if (input && icon) {
+                if (input.type === "password") {
+                    input.type = "text";
+                    icon.classList.replace('ph-eye', 'ph-eye-slash');
+                } else {
+                    input.type = "password";
+                    icon.classList.replace('ph-eye-slash', 'ph-eye');
+                }
+            }
         };
     </script>
 
@@ -131,7 +146,19 @@
             <div id="licensed-to" class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-2 flex justify-center gap-1"><span class="hidden">Licenciado para:</span> <span>...</span></div>
             <div id="days-remaining" class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-8"></div>
             <form onsubmit="handleLogin(event)" class="space-y-5 text-left">
-                <div><div class="relative group"><div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-lock-key text-slate-400 group-focus-within:text-blue-400 transition-colors"></i></div><input type="password" id="login-pass" placeholder="Senha de Acesso" class="w-full py-4 pl-12 pr-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm"><button type="button" onclick="window.togglePassVisibility()" class="absolute right-4 top-4 text-slate-400 hover:text-blue-400 cursor-pointer transition-colors"><i id="eye-icon" class="ph-bold ph-eye text-xl"></i></button></div></div>
+                <div>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="ph-bold ph-lock-key text-slate-400 group-focus-within:text-blue-400 transition-colors"></i>
+                        </div>
+                        <input type="password" id="login-pass" placeholder="Senha de Acesso" class="w-full py-4 pl-12 pr-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm">
+                        <!-- ADICIONADO z-10 PARA GARANTIR O CLIQUE -->
+                        <button type="button" onclick="window.togglePassVisibility()" class="absolute right-4 top-4 text-slate-400 hover:text-blue-400 cursor-pointer transition-colors z-10">
+                            <i id="eye-icon" class="ph-bold ph-eye text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
                 <div id="confirm-pass-container" class="hidden"><div class="relative group"><div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-shield-check text-slate-400 group-focus-within:text-blue-400 transition-colors"></i></div><input type="password" id="login-pass-confirm" placeholder="Confirmar Senha" class="w-full py-4 pl-12 bg-slate-950/50 border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm"></div></div>
                 <button type="submit" id="login-btn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 transition-all transform active:scale-[0.98] border border-white/10">Entrar</button>
             </form>
@@ -241,7 +268,7 @@
                 <!-- FINANCEIRO -->
                 <div id="view-financeiro" class="view-section hidden fade-in">
                     <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm w-full"><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-emerald-500 shadow-sm"><p class="text-sm text-emerald-600 dark:text-emerald-400 font-bold">Receita</p><h3 class="text-2xl font-bold text-emerald-800 dark:text-emerald-300" id="pj-receita">R$ 0,00</h3></div><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-rose-500 shadow-sm"><p class="text-sm text-rose-600 dark:text-rose-400 font-bold">Despesas</p><h3 class="text-2xl font-bold text-rose-800 dark:text-rose-300" id="pj-despesa">R$ 0,00</h3></div><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm"><div class="flex justify-between"><p class="text-sm text-slate-500 dark:text-slate-400 font-bold">Saldo</p></div><h3 class="text-2xl font-bold text-slate-700 dark:text-white" id="pj-saldo">R$ 0,00</h3></div></div><div class="mt-6 px-4 md:px-0"><div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2"><i class="ph-fill ph-heartbeat text-rose-500 text-xl"></i> Saúde Financeira</h3><div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700"><span class="text-xs font-bold text-slate-500 dark:text-slate-400">Retenção:</span><input type="number" id="input-percentual-reserva" min="0" max="100" value="20" class="w-12 bg-transparent text-center text-sm font-bold focus:outline-none" onchange="window.salvarConfigFinanceira()"><span class="text-sm font-bold text-slate-600 dark:text-slate-300">%</span></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center"><div><div class="flex justify-between items-end mb-1"><span class="text-xs font-bold text-slate-500 dark:text-slate-400">Status</span><span id="label-saude-status" class="text-sm font-bold text-emerald-600">Excelente</span></div><div class="health-bar-container w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full"><div id="bar-saude-fill" class="health-bar-fill h-full bg-emerald-500 rounded-full" style="width: 0%"></div></div></div><div class="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/30"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-indigo-400">Reserva</span><span id="val-reserva-empresa" class="text-sm font-bold text-indigo-600 dark:text-indigo-400">R$ 0,00</span></div><div class="border-t border-indigo-200 dark:border-indigo-800 my-2"></div><div class="flex justify-between items-center"><div><span class="block text-xs font-bold text-slate-500 dark:text-slate-400">Pró-Labore</span></div><span id="val-meu-salario" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">R$ 0,00</span></div></div></div></div></div></div>
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 py-6"><div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm h-72"><canvas id="grafico-pj"></canvas></div><div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white">Movimentar</h3><form onsubmit="window.adicionarTransacao(event, 'pj')" class="space-y-3"><div class="flex gap-2"><label class="flex-1 cursor-pointer"><input type="radio" name="pj-tipo" value="entrada" checked class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-emerald-100 peer-checked:text-emerald-700 dark:peer-checked:bg-emerald-900/30 dark:peer-checked:text-emerald-400 transition-all font-medium text-sm">Entrada</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="pj-tipo" value="saida" class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-rose-100 peer-checked:text-rose-700 dark:peer-checked:bg-rose-900/30 dark:peer-checked:text-rose-400 transition-all font-medium text-sm">Saída</div></label></div><div class="grid grid-cols-2 gap-3"><input type="text" id="pj-desc" placeholder="Descrição" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"><input type="number" id="pj-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div class="grid grid-cols-2 gap-3"><select id="pj-modalidade" onchange="window.toggleModalidade('pj')" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white text-sm"><option value="unico">Único</option><option value="recorrente">Recorrente</option><option value="parcelado">Parcelado</option></select><input type="date" id="pj-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div id="pj-parcelas-container" class="hidden"><label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Quantidade</label><input type="number" id="pj-parcelas" value="12" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><button type="submit" class="w-full bg-slate-800 text-white py-2.5 rounded-lg font-bold">Confirmar</button></form></div></div><div class="mt-0 px-4 md:px-8 pb-6"><h3 class="font-bold text-slate-700 dark:text-white mb-3">Extrato</h3><div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm"><div class="max-h-80 overflow-y-auto"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pj" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div></div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 py-6"><div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm h-72"><canvas id="grafico-pj"></canvas></div><div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white">Movimentar</h3><form onsubmit="window.adicionarTransacao(event, 'pj')" class="space-y-3"><div class="flex gap-2"><label class="flex-1 cursor-pointer"><input type="radio" name="pj-tipo" value="entrada" checked class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-emerald-100 peer-checked:text-emerald-700 dark:peer-checked:bg-emerald-900/30 dark:peer-checked:text-emerald-400 transition-all font-medium text-sm">Entrada</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="pj-tipo" value="saida" class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-rose-100 peer-checked:text-rose-700 dark:peer-checked:bg-rose-900/30 dark:peer-checked:text-rose-400 transition-all font-medium text-sm">Saída</div></label></div><div class="grid grid-cols-2 gap-3"><input type="text" id="pj-desc" placeholder="Descrição" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"><input type="number" id="pj-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"><input type="number" id="pj-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div class="grid grid-cols-2 gap-3"><select id="pj-modalidade" onchange="window.toggleModalidade('pj')" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white text-sm"><option value="unico">Único</option><option value="recorrente">Recorrente</option><option value="parcelado">Parcelado</option></select><input type="date" id="pj-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div id="pj-parcelas-container" class="hidden"><label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Quantidade</label><input type="number" id="pj-parcelas" value="12" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><button type="submit" class="w-full bg-slate-800 text-white py-2.5 rounded-lg font-bold">Confirmar</button></form></div></div><div class="mt-0 px-4 md:px-8 pb-6"><h3 class="font-bold text-slate-700 dark:text-white mb-3">Extrato</h3><div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm"><div class="max-h-80 overflow-y-auto"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pj" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div></div>
                 </div>
 
                 <div id="view-pessoal" class="view-section hidden fade-in"><div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm w-full"><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm"><p class="text-sm text-blue-600 dark:text-blue-400 font-bold">Ganhos</p><h3 class="text-2xl font-bold text-blue-800 dark:text-blue-300" id="pf-receita">R$ 0,00</h3></div><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-orange-500 shadow-sm"><p class="text-sm text-orange-600 dark:text-orange-400 font-bold">Gastos</p><h3 class="text-2xl font-bold text-orange-800 dark:text-orange-300" id="pf-despesa">R$ 0,00</h3></div><div class="bg-white dark:bg-slate-900 p-4 rounded-xl border-l-4 border-slate-500 shadow-sm"><div class="flex justify-between"><p class="text-sm text-slate-600 dark:text-slate-400 font-bold">Saldo</p></div><h3 class="text-2xl font-bold text-slate-700 dark:text-white" id="pf-saldo">R$ 0,00</h3></div></div></div><div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 py-6"><div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm h-72"><canvas id="grafico-pf"></canvas></div><div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 h-fit"><h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white">Movimentar</h3><form onsubmit="window.adicionarTransacao(event, 'pf')" class="space-y-3"><div class="flex gap-2"><label class="flex-1 cursor-pointer"><input type="radio" name="pf-tipo" value="entrada" checked class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-blue-100 peer-checked:text-blue-700 dark:peer-checked:bg-blue-900/30 dark:peer-checked:text-blue-400 transition-all font-medium text-sm">Ganho</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="pf-tipo" value="saida" class="peer hidden"><div class="py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 peer-checked:bg-orange-100 peer-checked:text-orange-700 dark:peer-checked:bg-orange-900/30 dark:peer-checked:text-orange-400 transition-all font-medium text-sm">Gasto</div></label></div><div class="grid grid-cols-2 gap-3"><input type="text" id="pf-desc" placeholder="Descrição" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"><input type="number" id="pf-valor" placeholder="Valor" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div class="grid grid-cols-2 gap-3"><select id="pf-modalidade" onchange="window.toggleModalidade('pf')" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white text-sm"><option value="unico">Único</option><option value="recorrente">Recorrente</option><option value="parcelado">Parcelado</option></select><input type="date" id="pf-data" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div id="pf-parcelas-container" class="hidden"><label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Quantidade</label><input type="number" id="pf-parcelas" value="12" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white"></div><button type="submit" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-bold">Registrar</button></form></div></div><div class="mt-0 px-4 md:px-8 pb-6"><h3 class="font-bold text-slate-700 dark:text-white mb-3">Extrato</h3><div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm"><div class="max-h-80 overflow-y-auto"><table class="w-full text-left text-sm"><tbody id="lista-transacoes-pf" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody></table></div></div></div></div>
@@ -1020,20 +1047,43 @@
             window.animateParticles = function(cvs) {
                 if(document.getElementById('login-overlay').classList.contains('hidden')) return;
                 ctx.clearRect(0,0,width,height);
-                if(mouse.x){ const g = ctx.createRadialGradient(mouse.x,mouse.y,0,mouse.x,mouse.y,200); g.addColorStop(0,'rgba(59,130,246,0.15)'); g.addColorStop(1,'transparent'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(mouse.x,mouse.y,200,0,Math.PI*2); ctx.fill(); }
+                
+                // Mouse interaction
+                if(mouse.x){
+                    const g = ctx.createRadialGradient(mouse.x,mouse.y,0,mouse.x,mouse.y,200);
+                    g.addColorStop(0,'rgba(59,130,246,0.15)'); g.addColorStop(1,'transparent');
+                    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(mouse.x,mouse.y,200,0,Math.PI*2); ctx.fill();
+                }
+
                 particles.forEach((p, i) => {
                     p.update(); p.draw();
-                    for(let j=i+1; j<particles.length; j++){ const dx=p.x-particles[j].x, dy=p.y-particles[j].y, d=Math.hypot(dx,dy); if(d<120){ ctx.beginPath(); ctx.strokeStyle=`rgba(100,116,139,${(1-d/120)*0.3})`; ctx.lineWidth=1; ctx.moveTo(p.x,p.y); ctx.lineTo(particles[j].x,particles[j].y); ctx.stroke(); } }
-                    if(mouse.x){ const dx=p.x-mouse.x, dy=p.y-mouse.y, d=Math.hypot(dx,dy); if(d<150){ ctx.beginPath(); ctx.strokeStyle=`rgba(147,197,253,${(1-d/150)*0.5})`; ctx.lineWidth=1; ctx.moveTo(p.x,p.y); ctx.lineTo(mouse.x,mouse.y); ctx.stroke(); } }
+                    // Connections
+                    for(let j=i+1; j<particles.length; j++){
+                        const dx=p.x-particles[j].x, dy=p.y-particles[j].y, d=Math.hypot(dx,dy);
+                        if(d<120){ ctx.beginPath(); ctx.strokeStyle=`rgba(100,116,139,${(1-d/120)*0.3})`; ctx.lineWidth=1; ctx.moveTo(p.x,p.y); ctx.lineTo(particles[j].x,particles[j].y); ctx.stroke(); }
+                    }
+                    // Mouse Connect
+                    if(mouse.x){
+                        const dx=p.x-mouse.x, dy=p.y-mouse.y, d=Math.hypot(dx,dy);
+                        if(d<150){ ctx.beginPath(); ctx.strokeStyle=`rgba(147,197,253,${(1-d/150)*0.5})`; ctx.lineWidth=1; ctx.moveTo(p.x,p.y); ctx.lineTo(mouse.x,mouse.y); ctx.stroke(); }
+                    }
                 });
                 window.animationFrameId = requestAnimationFrame(() => window.animateParticles(cvs));
             };
+
             resize();
             window.animateParticles(canvas);
         }
 
-        // --- RESTORED LICENSE & AUTH FUNCTIONS ---
+        // --- BLOQUEAR TELA ---
+        window.bloquearTela = function() {
+            document.getElementById('login-overlay').classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+            document.getElementById('app-content').classList.add('blur-content');
+            document.getElementById('login-pass').value = '';
+            initLoginAnimation();
+        };
 
+        // --- RESTORED LICENSE & AUTH FUNCTIONS ---
         function checkLicense() {
             const lic = JSON.parse(localStorage.getItem('gestor_license'));
             if(!lic) return showAct('Ativação Necessária', 'Insira seus dados.');
@@ -1094,18 +1144,43 @@
                 document.getElementById('confirm-pass-container').classList.remove('hidden'); 
             } 
             document.getElementById('login-overlay').classList.remove('hidden'); 
-            // Call animation logic here if needed, or rely on window load
             if(typeof window.animateParticles === 'function') {
                 const cvs = document.getElementById('login-bg-canvas');
                 window.animateParticles(cvs);
-            } else {
+            } else if(typeof initLoginAnimation === 'function') {
                  initLoginAnimation();
             }
         }
 
+        function handleLogin(e) { 
+             e.preventDefault(); 
+             const p=document.getElementById('login-pass').value;
+             const c=document.getElementById('login-pass-confirm').value;
+             const s=localStorage.getItem('gestor_auth'); 
+             
+             if(!s) { 
+                 if(p.length<4) return alert("Mínimo 4"); 
+                 if(p!==c) return alert("Senhas diferem"); 
+                 localStorage.setItem('gestor_auth',CryptoJS.SHA256(p).toString()); 
+                 unlock(); 
+             } else { 
+                 if(CryptoJS.SHA256(p).toString()===s) unlock(); 
+                 else alert("Senha errada"); 
+             } 
+        }
+
+        function unlock() { 
+            document.getElementById('login-overlay').classList.add('hidden'); 
+            document.getElementById('app-content').classList.remove('blur-content'); 
+            renderizar(); 
+        }
+
+        function emergencyReset() { 
+            if(confirm("Resetar?")) { localStorage.clear(); location.reload(); } 
+        }
+
         // Start App
         checkLicense();
-
     </script>
 </body>
 </html>
