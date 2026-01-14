@@ -219,9 +219,6 @@
 
             <main class="flex-1 overflow-y-auto scroll-smooth relative" id="main-scroll-area">
                 <div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-lg shadow-xl z-[300] font-medium transform transition-all duration-300 translate-y-10 opacity-0"></div>
-                
-                <!-- ÁREA DE NOTIFICAÇÕES GLOBAIS (NOVO) -->
-                <div id="global-alerts" class="w-full max-w-7xl mx-auto z-40"></div>
 
                 <!-- CRM -->
                 <div id="view-crm" class="view-section fade-in">
@@ -842,22 +839,6 @@
             }
         };
 
-        window.marcarPagoRapido = async (id, tipo) => {
-             const list = tipo === 'pj' ? window.DB.pj : window.DB.pf;
-             const col = tipo === 'pj' ? 'transacoes_pj' : 'transacoes_pf';
-             const item = list.find(x => x.id === id);
-
-             if(item) {
-                 if(window.isOnline && currentUser) {
-                     await updateDoc(doc(db, 'users', currentUser.uid, col, id), { pago: true });
-                 } else {
-                     item.pago = true;
-                     window.saveLocal();
-                 }
-                 window.mostrarToast('Conta paga! 🚀');
-             }
-        };
-
         // --- METAS FINANCEIRAS ---
         window.adicionarMeta = async (e) => {
             e.preventDefault();
@@ -1069,65 +1050,8 @@
             renderFin('pf');
             renderContas(); 
             renderMetas(); 
-            renderLembretes(); // NOVA FUNÇÃO DE ALERTA
             // Ensure profile is loaded on render
             carregarPerfil();
-        }
-
-        function renderLembretes() {
-            const container = document.getElementById('global-alerts');
-            if (!container) return; 
-            container.innerHTML = '';
-
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-
-            const checkBill = (bill, type) => {
-                if(bill.op !== 'saida' || bill.pago) return null;
-                
-                const parts = bill.data.split('/');
-                const bDate = new Date(parts[2], parts[1]-1, parts[0]);
-                
-                // Calculate difference in days
-                const diffTime = bDate - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-
-                if (diffDays < 0) return { ...bill, status: 'vencido', label: 'Venceu!', type };
-                if (diffDays === 0) return { ...bill, status: 'hoje', label: 'Vence Hoje', type };
-                if (diffDays === 1) return { ...bill, status: 'amanha', label: 'Vence Amanhã', type };
-                return null;
-            };
-
-            const alerts = [];
-            window.DB.pj.forEach(b => { const r = checkBill(b, 'Empresa'); if(r) alerts.push(r); });
-            window.DB.pf.forEach(b => { const r = checkBill(b, 'Pessoal'); if(r) alerts.push(r); });
-
-            if (alerts.length > 0) {
-                let html = '<div class="mx-4 md:mx-8 mt-6 grid gap-2">';
-                alerts.forEach(a => {
-                    const colorClass = a.status === 'vencido' ? 'bg-rose-100 text-rose-700 border-rose-200' : (a.status === 'hoje' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-blue-100 text-blue-700 border-blue-200');
-                    const icon = a.status === 'vencido' ? 'ph-warning-circle' : (a.status === 'hoje' ? 'ph-alarm' : 'ph-calendar');
-                    
-                    html += `
-                    <div class="p-3 rounded-xl border ${colorClass} flex justify-between items-center shadow-sm animate-in slide-in-from-top duration-300">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-white/50 rounded-lg"><i class="ph-bold ${icon} text-xl"></i></div>
-                            <div>
-                                <p class="font-bold text-sm">${a.desc}</p>
-                                <p class="text-xs opacity-80">${a.type} - ${a.label} (${a.data})</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="font-bold text-sm">${window.formatMoney(a.valor)}</span>
-                            <button onclick="window.marcarPagoRapido('${a.id}', '${a.type === 'Empresa' ? 'pj' : 'pf'}')" class="p-2 bg-white/50 hover:bg-white rounded-lg transition-colors text-xs font-bold uppercase tracking-wider" title="Marcar Pago">Pagar</button>
-                        </div>
-                    </div>`;
-                });
-                html += '</div>';
-                container.innerHTML = html;
-            }
         }
 
         function renderMetas() {
@@ -1309,7 +1233,6 @@
                     </div>`;
                     const container = list.lastElementChild.querySelector('.group-container');
                     items.forEach(l => {
-                        // Logic for Buttons based on Group
                         let btns = `
                             <button onclick="window.alterarStatusLead('${l.id}', 'ganho')" class="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors" title="Fechar Venda"><i class="ph-bold ph-check"></i></button>
                             <button onclick="window.alterarStatusLead('${l.id}', 'sem_retorno')" class="p-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors" title="Sem Retorno"><i class="ph-bold ph-clock"></i></button>
@@ -1322,10 +1245,7 @@
                             btns = `<button onclick="window.alterarStatusLead('${l.id}', 'negociacao')" class="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors" title="Reativar"><i class="ph-bold ph-arrow-u-up-left text-lg"></i></button>`;
                         }
 
-                        // Social Link Logic
                         let socialHtml = l.social ? `<a href="${l.social}" target="_blank" class="text-pink-500 hover:text-pink-600 dark:hover:text-pink-400 p-1.5 rounded-lg hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors" title="Rede Social"><i class="ph-bold ph-instagram-logo text-lg"></i></a>` : '';
-                        
-                        // Doc Logic
                         let docHtml = l.doc ? `<span class="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 truncate max-w-[80px]" title="${l.doc}">${l.doc}</span>` : '';
 
                         container.innerHTML += `
@@ -1353,7 +1273,7 @@
                     });
                 }
             });
-            // Update Totals
+            
             const neg = window.DB.leads.filter(l => l.status === 'negociacao');
             const ati = window.DB.leads.filter(l => l.status === 'ganho');
             const sem = window.DB.leads.filter(l => l.status === 'sem_retorno');
@@ -1369,7 +1289,6 @@
             if(document.getElementById('crm-count-inativos')) document.getElementById('crm-count-inativos').innerText = ina.length;
             if(document.getElementById('total-negociacao-list')) document.getElementById('total-negociacao-list').innerText = window.formatMoney(window.DB.leads.reduce((a,b)=>a+b.valor,0));
 
-            // Specialized Views
             const semList = document.getElementById('lista-sem-retorno'); if(semList) { semList.innerHTML = ''; sem.forEach(l => semList.innerHTML += createSimpleCard(l)); }
             const atiList = document.getElementById('lista-ativos-grid'); if(atiList) { atiList.innerHTML = ''; ati.forEach(l => atiList.innerHTML += createSimpleCard(l, true)); }
             const conList = document.getElementById('lista-contratos'); if(conList) { conList.innerHTML = ''; ati.forEach(l => conList.innerHTML += createContractCard(l)); }
@@ -1418,8 +1337,7 @@
             }
 
             const filteredList = list.filter(t => {
-                const parts = t.data.split('/'); // DD/MM/AAAA
-                // Cria data em UTC para evitar problemas de fuso
+                const parts = t.data.split('/');
                 const tDate = new Date(parts[2], parts[1]-1, parts[0]);
                 return tDate.getMonth() === mes && tDate.getFullYear() === ano;
             });
