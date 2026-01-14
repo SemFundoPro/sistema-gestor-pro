@@ -755,6 +755,28 @@
             }
         };
 
+        // --- NOVA FUNÇÃO: Excluir Grupo Inteiro ---
+        window.excluirGrupo = async (groupId, tipo) => {
+            if(!confirm('Tem certeza? Isso apagará TODAS as parcelas (pagas e pendentes) desta conta.')) return;
+            
+            const col = tipo === 'pj' ? 'transacoes_pj' : 'transacoes_pf';
+            const list = tipo === 'pj' ? window.DB.pj : window.DB.pf;
+            
+            // Encontra os IDs para apagar
+            const itemsToDelete = list.filter(x => x.groupId === groupId);
+            
+            if(window.isOnline && currentUser) {
+                // Deleta um por um (simples e funcional sem mudar imports)
+                const promises = itemsToDelete.map(item => deleteDoc(doc(db, 'users', currentUser.uid, col, item.id)));
+                await Promise.all(promises);
+            } else {
+                if(tipo === 'pj') window.DB.pj = window.DB.pj.filter(x => x.groupId !== groupId);
+                else window.DB.pf = window.DB.pf.filter(x => x.groupId !== groupId);
+                window.saveLocal();
+            }
+            window.mostrarToast('Conta removida!');
+        };
+
         window.togglePago = async (id, tipo) => {
             const list = tipo === 'pj' ? window.DB.pj : window.DB.pf;
             const col = tipo === 'pj' ? 'transacoes_pj' : 'transacoes_pf';
@@ -924,8 +946,11 @@
                                     <h4 class="font-bold text-slate-800 dark:text-white text-lg">${first.desc}</h4>
                                     <p class="text-xs text-slate-500">Total: ${window.formatMoney(totalVal)}</p>
                                 </div>
-                                <div class="text-right">
-                                    <span class="text-xs font-bold ${first.op === 'entrada' ? 'text-emerald-500' : 'text-rose-500'} uppercase">${first.op}</span>
+                                <div class="flex flex-col items-end gap-1">
+                                    <div class="flex items-center gap-2">
+                                         <span class="text-xs font-bold ${first.op === 'entrada' ? 'text-emerald-500' : 'text-rose-500'} uppercase">${first.op}</span>
+                                         <button onclick="window.excluirGrupo('${first.groupId}', '${type}')" class="text-slate-400 hover:text-rose-500 transition-colors" title="Excluir Conta Inteira"><i class="ph-bold ph-trash"></i></button>
+                                    </div>
                                     <div class="text-xs text-slate-400 mt-1">${paidCount}/${totalCount} pagas</div>
                                 </div>
                             </div>
