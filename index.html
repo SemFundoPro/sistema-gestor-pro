@@ -239,8 +239,12 @@
                                 <h3 class="font-bold text-lg mb-5 flex items-center gap-2 text-slate-800 dark:text-white"><span class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-1.5 rounded-lg"><i class="ph-bold ph-plus"></i></span> Novo Lead</h3>
                                 <form onsubmit="window.adicionarLead(event)" class="space-y-4">
                                     <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Nome *</label><input type="text" id="lead-nome" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                                    
+                                    <!-- NOVO CAMPO DE TELEFONE -->
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">WhatsApp / Telefone</label><input type="text" id="lead-phone" placeholder="(99) 99999-9999" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></div>
+
                                     <div class="grid grid-cols-2 gap-3"><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Empresa</label><input type="text" id="lead-empresa" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></div><div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">CPF / CNPJ</label><input type="text" id="lead-doc" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></div></div>
-                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Social</label><input type="text" id="lead-social" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Social (Link)</label><input type="text" id="lead-social" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></div>
                                     <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Valor (R$)</label><input type="number" id="lead-valor" step="0.01" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
                                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-all shadow-lg flex justify-center items-center gap-2"><i class="ph-bold ph-floppy-disk"></i> Salvar</button>
                                 </form>
@@ -623,6 +627,7 @@
             e.preventDefault();
             const data = {
                 nome: document.getElementById('lead-nome').value,
+                telefone: document.getElementById('lead-phone').value, // Capture phone
                 empresa: document.getElementById('lead-empresa').value,
                 doc: document.getElementById('lead-doc').value,
                 social: document.getElementById('lead-social').value,
@@ -712,6 +717,7 @@
         window.confirmarEdicaoValor = async (id) => {
             const data = {
                 nome: document.getElementById('edit-nome').value,
+                telefone: document.getElementById('edit-phone').value, // Capture updated phone
                 empresa: document.getElementById('edit-empresa').value,
                 doc: document.getElementById('edit-doc').value,
                 social: document.getElementById('edit-social').value,
@@ -1217,6 +1223,18 @@
                         // Social Link Logic
                         let socialHtml = l.social ? `<a href="${l.social}" target="_blank" class="text-pink-500 hover:text-pink-600 dark:hover:text-pink-400 p-1.5 rounded-lg hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors" title="Rede Social"><i class="ph-bold ph-instagram-logo text-lg"></i></a>` : '';
                         
+                        // WhatsApp Logic
+                        let whatsappHtml = '';
+                        if (l.telefone) {
+                            let cleanPhone = l.telefone.replace(/\D/g, '');
+                            if (cleanPhone.length > 0) {
+                                // Add 55 if missing and length looks like BR number
+                                if (cleanPhone.length >= 10 && cleanPhone.length <= 11) cleanPhone = '55' + cleanPhone;
+                                const msg = `Olá ${encodeURIComponent(l.nome)}, tudo bem?`;
+                                whatsappHtml = `<a href="https://wa.me/${cleanPhone}?text=${msg}" target="_blank" class="text-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 p-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors" title="WhatsApp"><i class="ph-bold ph-whatsapp-logo text-lg"></i></a>`;
+                            }
+                        }
+
                         // Doc Logic
                         let docHtml = l.doc ? `<span class="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 truncate max-w-[80px]" title="${l.doc}">${l.doc}</span>` : '';
 
@@ -1234,6 +1252,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-1">
+                                ${whatsappHtml}
                                 ${socialHtml}
                                 <div class="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1"></div>
                                 <button onclick="editarValorLead('${l.id}')" class="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors" title="Editar"><i class="ph-bold ph-pencil-simple text-lg"></i></button>
@@ -1472,7 +1491,18 @@
             const box = document.createElement('div');
             box.id = 'custom-input-box';
             box.className = 'fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm fade-in';
-            box.innerHTML = `<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700"><h3 class="text-lg font-bold mb-4 dark:text-white">Editar Lead</h3><div class="space-y-3"><div><label class="text-xs font-bold text-slate-500 uppercase">Nome</label><input id="edit-nome" value="${l.nome}" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-slate-500 uppercase">Empresa</label><input id="edit-empresa" value="${l.empresa||''}" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div><label class="text-xs font-bold text-slate-500 uppercase">CPF/CNPJ</label><input id="edit-doc" value="${l.doc||''}" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white"></div></div><div><label class="text-xs font-bold text-slate-500 uppercase">Social</label><input id="edit-social" value="${l.social||''}" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white"></div><div><label class="text-xs font-bold text-slate-500 uppercase">Valor</label><input type="number" id="edit-valor" value="${l.valor}" step="0.01" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white font-bold text-blue-600"></div></div><div class="flex gap-2 mt-6"><button onclick="this.closest('#custom-input-box').remove()" class="flex-1 py-2 bg-slate-200 text-slate-600 rounded">Cancelar</button><button onclick="window.confirmarEdicaoValor('${l.id}')" class="flex-1 py-2 bg-blue-600 text-white rounded font-bold">Salvar</button></div></div>`;
+            box.innerHTML = `<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700"><h3 class="text-lg font-bold mb-4 dark:text-white">Editar Lead</h3>
+            <div class="space-y-3">
+                <div><label class="text-xs font-bold text-slate-500 uppercase">Nome</label><input id="edit-nome" value="${l.nome}" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white"></div>
+                <div><label class="text-xs font-bold text-slate-500 uppercase">WhatsApp</label><input id="edit-phone" value="${l.telefone||''}" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="text-xs font-bold text-slate-500 uppercase">Empresa</label><input id="edit-empresa" value="${l.empresa||''}" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white"></div>
+                    <div><label class="text-xs font-bold text-slate-500 uppercase">CPF/CNPJ</label><input id="edit-doc" value="${l.doc||''}" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white"></div>
+                </div>
+                <div><label class="text-xs font-bold text-slate-500 uppercase">Social</label><input id="edit-social" value="${l.social||''}" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white"></div>
+                <div><label class="text-xs font-bold text-slate-500 uppercase">Valor</label><input type="number" id="edit-valor" value="${l.valor}" step="0.01" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 dark:text-white font-bold text-blue-600"></div>
+            </div>
+            <div class="flex gap-2 mt-6"><button onclick="this.closest('#custom-input-box').remove()" class="flex-1 py-2 bg-slate-200 text-slate-600 rounded">Cancelar</button><button onclick="window.confirmarEdicaoValor('${l.id}')" class="flex-1 py-2 bg-blue-600 text-white rounded font-bold">Salvar</button></div></div>`;
             document.body.appendChild(box);
         }
         window.editarValorLead = editarValorLead;
