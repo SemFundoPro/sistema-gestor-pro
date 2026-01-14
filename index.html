@@ -68,6 +68,7 @@
             notas: JSON.parse(localStorage.getItem('gestor_notas')) || [],
             pj: JSON.parse(localStorage.getItem('gestor_pj')) || [],
             pf: JSON.parse(localStorage.getItem('gestor_pf')) || [],
+            metas: JSON.parse(localStorage.getItem('gestor_metas')) || [],
             profile: JSON.parse(localStorage.getItem('gestor_profile')) || {},
             settings: JSON.parse(localStorage.getItem('gestor_settings')) || { reinvestRate: 20 }
         };
@@ -183,6 +184,7 @@
                 <button onclick="mudarAba('crm')" id="btn-crm" class="tab-btn w-full active px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-3 bg-blue-600 text-white shadow-md text-left"><i class="ph-bold ph-users text-lg"></i> Prospecção</button>
                 <button onclick="mudarAba('scripts')" id="btn-scripts" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-chat-text text-lg"></i> Scripts</button>
                 <button onclick="mudarAba('contas')" id="btn-contas" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-list-checks text-lg"></i> Controle de Contas</button>
+                <button onclick="mudarAba('metas')" id="btn-metas" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-target text-lg"></i> Metas</button>
                 <button onclick="mudarAba('sem_retorno')" id="btn-sem_retorno" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-clock text-lg"></i> Sem Retorno</button>
                 <button onclick="mudarAba('ativos')" id="btn-ativos" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-check-circle text-lg"></i> Ativos</button>
                 <button onclick="mudarAba('contratos')" id="btn-contratos" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-file-text text-lg"></i> Contratos</button>
@@ -254,7 +256,7 @@
                     </div>
                 </div>
 
-                <!-- CONTROLE DE CONTAS (NOVO) -->
+                <!-- CONTROLE DE CONTAS -->
                 <div id="view-contas" class="view-section hidden fade-in px-4 md:px-8 py-6">
                     <h3 class="font-bold text-lg text-slate-700 dark:text-white mb-6 flex items-center gap-2"><i class="ph-fill ph-list-checks text-purple-500"></i> Controle de Parcelas</h3>
                     <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
@@ -265,6 +267,27 @@
                         <div>
                             <h4 class="font-bold text-slate-600 dark:text-slate-300 mb-4 border-b border-slate-200 dark:border-slate-800 pb-2 uppercase tracking-wide text-sm">Pessoal</h4>
                             <div id="lista-contas-pf" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- METAS FINANCEIRAS (NOVO) -->
+                <div id="view-metas" class="view-section hidden fade-in px-4 md:px-8 py-6">
+                    <h3 class="font-bold text-lg text-slate-700 dark:text-white mb-6 flex items-center gap-2"><i class="ph-fill ph-target text-rose-500"></i> Metas Financeiras</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-1">
+                            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 sticky top-4">
+                                <h4 class="font-bold text-base mb-4 text-slate-800 dark:text-white">Nova Meta</h4>
+                                <form onsubmit="window.adicionarMeta(event)" class="space-y-4">
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Objetivo</label><input type="text" id="meta-titulo" placeholder="Ex: Viagem, Carro" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Valor Alvo (R$)</label><input type="number" id="meta-valor" step="0.01" required class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 text-lg font-bold"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Data Limite (Opcional)</label><input type="date" id="meta-data" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500"></div>
+                                    <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 rounded-xl font-bold shadow-lg">Criar Meta</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <div id="lista-metas" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
                         </div>
                     </div>
                 </div>
@@ -395,7 +418,7 @@
                             <canvas id="grafico-pf"></canvas>
                         </div>
                         
-                        <!-- FORMULÁRIO MOVIMENTAR PF (CORRIGIDO E PADRONIZADO) -->
+                        <!-- FORMULÁRIO MOVIMENTAR PF -->
                         <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 h-fit">
                             <h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white">Movimentar</h3>
                             <form onsubmit="window.adicionarTransacao(event, 'pf')" class="space-y-3">
@@ -520,7 +543,7 @@
         }
 
         function setupCloudListeners(uid) {
-            const map = { 'leads': 'leads', 'scripts': 'scripts', 'notas': 'notas', 'transacoes_pj': 'pj', 'transacoes_pf': 'pf' };
+            const map = { 'leads': 'leads', 'scripts': 'scripts', 'notas': 'notas', 'transacoes_pj': 'pj', 'transacoes_pf': 'pf', 'metas': 'metas' };
             Object.keys(map).forEach(col => {
                 onSnapshot(collection(db, 'users', uid, col), (snap) => {
                     window.DB[map[col]] = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -793,6 +816,57 @@
             }
         };
 
+        // --- METAS FINANCEIRAS ---
+        window.adicionarMeta = async (e) => {
+            e.preventDefault();
+            const data = {
+                titulo: document.getElementById('meta-titulo').value,
+                alvo: parseFloat(document.getElementById('meta-valor').value) || 0,
+                atual: 0,
+                data_limite: document.getElementById('meta-data').value,
+                createdAt: Date.now()
+            };
+            if(window.isOnline && currentUser) {
+                await addDoc(collection(db, 'users', currentUser.uid, 'metas'), data);
+            } else {
+                window.DB.metas.push({id: String(Date.now()), ...data});
+                window.saveLocal();
+            }
+            e.target.reset();
+            window.mostrarToast('Meta criada!');
+        };
+
+        window.atualizarMeta = async (id) => {
+            const valStr = prompt("Valor para adicionar (ou use negativo para remover):");
+            if(!valStr) return;
+            const val = parseFloat(valStr.replace(',', '.'));
+            if(isNaN(val)) return alert("Valor inválido");
+
+            const meta = window.DB.metas.find(m => m.id === id);
+            if(!meta) return;
+
+            const novoAtual = (meta.atual || 0) + val;
+
+            if(window.isOnline && currentUser) {
+                await updateDoc(doc(db, 'users', currentUser.uid, 'metas', id), { atual: novoAtual });
+            } else {
+                meta.atual = novoAtual;
+                window.saveLocal();
+            }
+            if(novoAtual >= meta.alvo) window.mostrarToast('Parabéns! Meta atingida! 🎉');
+            else window.mostrarToast('Valor atualizado!');
+        };
+
+        window.excluirMeta = async (id) => {
+            if(!confirm('Excluir esta meta?')) return;
+            if(window.isOnline && currentUser) {
+                await deleteDoc(doc(db, 'users', currentUser.uid, 'metas', id));
+            } else {
+                window.DB.metas = window.DB.metas.filter(m => m.id !== id);
+                window.saveLocal();
+            }
+        };
+
         // --- SALVAR PERFIL (CORREÇÃO AQUI) ---
         window.salvarPerfil = async (e) => {
             e.preventDefault();
@@ -891,9 +965,62 @@
             renderNotas();
             renderFin('pj');
             renderFin('pf');
-            renderContas(); // NOVA FUNÇÃO
+            renderContas(); 
+            renderMetas(); // NOVA FUNÇÃO
             // Ensure profile is loaded on render
             carregarPerfil();
+        }
+
+        function renderMetas() {
+            const container = document.getElementById('lista-metas');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            if(window.DB.metas.length === 0) {
+                container.innerHTML = '<div class="col-span-2 text-center text-slate-400 py-10"><i class="ph-duotone ph-target text-4xl mb-2"></i><p>Nenhuma meta definida ainda.</p></div>';
+                return;
+            }
+
+            window.DB.metas.forEach(m => {
+                const perc = Math.min(100, Math.round(((m.atual || 0) / m.alvo) * 100));
+                const isComplete = perc >= 100;
+                const barColor = isComplete ? 'bg-emerald-500' : 'bg-rose-500';
+                
+                // Formata data se existir
+                let dateHtml = '';
+                if(m.data_limite) {
+                    const d = new Date(m.data_limite);
+                    dateHtml = `<div class="text-[10px] text-slate-400 mt-1"><i class="ph-bold ph-calendar"></i> Alvo: ${d.toLocaleDateString('pt-BR')}</div>`;
+                }
+
+                container.innerHTML += `
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative group overflow-hidden">
+                    ${isComplete ? '<div class="absolute inset-0 bg-emerald-500/10 pointer-events-none"></div>' : ''}
+                    <div class="flex justify-between items-start mb-2 relative z-10">
+                        <div>
+                            <h4 class="font-bold text-slate-800 dark:text-white text-lg">${m.titulo}</h4>
+                            ${dateHtml}
+                        </div>
+                        <button onclick="window.excluirMeta('${m.id}')" class="text-slate-300 hover:text-rose-500"><i class="ph-bold ph-trash"></i></button>
+                    </div>
+                    
+                    <div class="flex justify-between items-end mb-1 relative z-10">
+                        <div class="text-2xl font-bold ${isComplete ? 'text-emerald-600' : 'text-slate-700 dark:text-white'}">${window.formatMoney(m.atual || 0)}</div>
+                        <div class="text-xs font-bold text-slate-400">de ${window.formatMoney(m.alvo)}</div>
+                    </div>
+
+                    <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 mb-4 overflow-hidden relative z-10">
+                        <div class="${barColor} h-3 rounded-full transition-all duration-1000 relative" style="width: ${perc}%">
+                            <div class="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center relative z-10">
+                        <span class="text-xs font-bold ${isComplete ? 'text-emerald-600' : 'text-rose-500'}">${perc}% Concluído</span>
+                        <button onclick="window.atualizarMeta('${m.id}')" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"><i class="ph-bold ph-plus"></i> Depositar</button>
+                    </div>
+                </div>`;
+            });
         }
 
         function renderContas() {
@@ -1318,6 +1445,7 @@
             localStorage.setItem('gestor_notas', JSON.stringify(window.DB.notas));
             localStorage.setItem('gestor_pj', JSON.stringify(window.DB.pj));
             localStorage.setItem('gestor_pf', JSON.stringify(window.DB.pf));
+            localStorage.setItem('gestor_metas', JSON.stringify(window.DB.metas)); // NEW
             localStorage.setItem('gestor_profile', JSON.stringify(window.DB.profile));
             localStorage.setItem('gestor_settings', JSON.stringify(window.DB.settings));
             renderizar();
