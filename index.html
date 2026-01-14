@@ -219,9 +219,13 @@
 
             <main class="flex-1 overflow-y-auto scroll-smooth relative" id="main-scroll-area">
                 <div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-lg shadow-xl z-[300] font-medium transform transition-all duration-300 translate-y-10 opacity-0"></div>
+                
+                <!-- ÁREA DE NOTIFICAÇÕES GLOBAIS (NOVO) -->
+                <div id="global-alerts" class="w-full max-w-7xl mx-auto z-40"></div>
 
                 <!-- CRM -->
                 <div id="view-crm" class="view-section fade-in">
+                    <!-- ... restante do conteúdo do CRM ... -->
                     <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all w-full">
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Pipeline de Vendas</h2>
@@ -838,6 +842,22 @@
             }
         };
 
+        window.marcarPagoRapido = async (id, tipo) => {
+             const list = tipo === 'pj' ? window.DB.pj : window.DB.pf;
+             const col = tipo === 'pj' ? 'transacoes_pj' : 'transacoes_pf';
+             const item = list.find(x => x.id === id);
+
+             if(item) {
+                 if(window.isOnline && currentUser) {
+                     await updateDoc(doc(db, 'users', currentUser.uid, col, id), { pago: true });
+                 } else {
+                     item.pago = true;
+                     window.saveLocal();
+                 }
+                 window.mostrarToast('Conta paga! 🚀');
+             }
+        };
+
         // --- METAS FINANCEIRAS ---
         window.adicionarMeta = async (e) => {
             e.preventDefault();
@@ -1049,8 +1069,65 @@
             renderFin('pf');
             renderContas(); 
             renderMetas(); 
+            renderLembretes(); // NOVA FUNÇÃO DE ALERTA
             // Ensure profile is loaded on render
             carregarPerfil();
+        }
+
+        function renderLembretes() {
+            const container = document.getElementById('global-alerts');
+            if (!container) return; 
+            container.innerHTML = '';
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const checkBill = (bill, type) => {
+                if(bill.op !== 'saida' || bill.pago) return null;
+                
+                const parts = bill.data.split('/');
+                const bDate = new Date(parts[2], parts[1]-1, parts[0]);
+                
+                // Calculate difference in days
+                const diffTime = bDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+                if (diffDays < 0) return { ...bill, status: 'vencido', label: 'Venceu!', type };
+                if (diffDays === 0) return { ...bill, status: 'hoje', label: 'Vence Hoje', type };
+                if (diffDays === 1) return { ...bill, status: 'amanha', label: 'Vence Amanhã', type };
+                return null;
+            };
+
+            const alerts = [];
+            window.DB.pj.forEach(b => { const r = checkBill(b, 'Empresa'); if(r) alerts.push(r); });
+            window.DB.pf.forEach(b => { const r = checkBill(b, 'Pessoal'); if(r) alerts.push(r); });
+
+            if (alerts.length > 0) {
+                let html = '<div class="mx-4 md:mx-8 mt-6 grid gap-2">';
+                alerts.forEach(a => {
+                    const colorClass = a.status === 'vencido' ? 'bg-rose-100 text-rose-700 border-rose-200' : (a.status === 'hoje' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-blue-100 text-blue-700 border-blue-200');
+                    const icon = a.status === 'vencido' ? 'ph-warning-circle' : (a.status === 'hoje' ? 'ph-alarm' : 'ph-calendar');
+                    
+                    html += `
+                    <div class="p-3 rounded-xl border ${colorClass} flex justify-between items-center shadow-sm animate-in slide-in-from-top duration-300">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-white/50 rounded-lg"><i class="ph-bold ${icon} text-xl"></i></div>
+                            <div>
+                                <p class="font-bold text-sm">${a.desc}</p>
+                                <p class="text-xs opacity-80">${a.type} - ${a.label} (${a.data})</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-sm">${window.formatMoney(a.valor)}</span>
+                            <button onclick="window.marcarPagoRapido('${a.id}', '${a.type === 'Empresa' ? 'pj' : 'pf'}')" class="p-2 bg-white/50 hover:bg-white rounded-lg transition-colors text-xs font-bold uppercase tracking-wider" title="Marcar Pago">Pagar</button>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            }
         }
 
         function renderMetas() {
@@ -1731,67 +1808,6 @@
 
         // Start App
         checkLicense();
-    </script>
-    <!-- EXPORT FUNCTIONALITY (NEW) -->
-    <script>
-        window.exportarLeads = (formato) => {
-            const dados = window.DB.leads.map(l => [l.nome, l.empresa || '-', window.formatMoney(l.valor), l.status]);
-            const colunas = ["Nome", "Empresa", "Valor", "Status"];
-            const titulo = "Relatorio_Leads";
-
-            if(formato === 'pdf') exportToPDF(titulo, colunas, dados);
-            else exportToCSV(titulo, colunas, dados);
-        };
-
-        window.exportarFinanceiro = (tipo, formato) => {
-            const list = tipo === 'pj' ? window.DB.pj : window.DB.pf;
-            
-            // Filtra pelo mês atual da visualização
-            const mes = window.viewDate.getMonth();
-            const ano = window.viewDate.getFullYear();
-            
-            const filteredList = list.filter(t => {
-                const parts = t.data.split('/');
-                const tDate = new Date(parts[2], parts[1]-1, parts[0]);
-                return tDate.getMonth() === mes && tDate.getFullYear() === ano;
-            });
-
-            const dados = filteredList.map(t => [t.data, t.desc, t.op.toUpperCase(), window.formatMoney(t.valor)]);
-            const colunas = ["Data", "Descrição", "Tipo", "Valor"];
-            const nomeMes = window.viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-            const titulo = `Extrato_${tipo.toUpperCase()}_${nomeMes.replace(' ', '_')}`;
-
-            if(formato === 'pdf') exportToPDF(titulo, colunas, dados);
-            else exportToCSV(titulo, colunas, dados);
-        };
-
-        function exportToCSV(filename, cols, rows) {
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += cols.join(",") + "\r\n";
-            rows.forEach(row => {
-                const rowStr = row.map(e => `"${String(e).replace(/"/g, '""')}"`).join(",");
-                csvContent += rowStr + "\r\n";
-            });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `${filename}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-        }
-
-        function exportToPDF(filename, cols, rows) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text(filename.replace(/_/g, ' '), 14, 15);
-            doc.autoTable({
-                head: [cols],
-                body: rows,
-                startY: 20,
-            });
-            doc.save(`${filename}.pdf`);
-        }
     </script>
 </body>
 </html>
