@@ -186,8 +186,11 @@
                 <button onclick="mudarAba('contas')" id="btn-contas" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-list-checks text-lg"></i> Controle de Contas</button>
                 <button onclick="mudarAba('metas')" id="btn-metas" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-target text-lg"></i> Metas</button>
                 
-                <!-- BOTÃO DE NOTIFICAÇÕES (NOVO) -->
-                <button onclick="mudarAba('notificacoes')" id="btn-notificacoes" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left"><i class="ph-bold ph-bell text-lg"></i> Novidades</button>
+                <!-- BOTÃO DE NOTIFICAÇÕES (COM BADGE) -->
+                <button onclick="mudarAba('notificacoes')" id="btn-notificacoes" class="tab-btn w-full px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-left relative">
+                    <i class="ph-bold ph-bell text-lg"></i> Novidades
+                    <span id="notif-badge" class="hidden absolute top-4 right-4 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white dark:border-slate-800 shadow-sm animate-pulse"></span>
+                </button>
 
                 <div class="border-t border-slate-100 dark:border-slate-800 my-4 mx-3"></div>
                 <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">Listas</div>
@@ -316,10 +319,24 @@
                     <h3 class="font-bold text-lg text-slate-700 dark:text-white mb-6 flex items-center gap-2"><i class="ph-fill ph-bell text-blue-500"></i> Novidades & Atualizações</h3>
                     <div class="relative pl-6 border-l-2 border-slate-200 dark:border-slate-700 space-y-8">
                         
-                        <!-- Item de Atualização -->
+                         <!-- Item de Atualização 2.2 -->
+                        <div class="relative">
+                            <div class="absolute -left-[29px] top-0 bg-white dark:bg-slate-900 border-4 border-emerald-500 w-4 h-4 rounded-full"></div>
+                            <div class="mb-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Versão 2.2 • Agora</div>
+                            <h4 class="text-lg font-bold text-slate-800 dark:text-white mb-2">Integração WhatsApp</h4>
+                            <p class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-3">
+                                Agora é possível cadastrar o WhatsApp dos leads e iniciar conversas diretamente pelo sistema com um clique.
+                            </p>
+                            <ul class="list-disc list-inside text-xs text-slate-500 dark:text-slate-400 space-y-1">
+                                <li>Campo de telefone no cadastro de Leads.</li>
+                                <li>Botão de ação rápida para abrir WhatsApp Web/App.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Item de Atualização 2.1 -->
                         <div class="relative">
                             <div class="absolute -left-[29px] top-0 bg-white dark:bg-slate-900 border-4 border-blue-500 w-4 h-4 rounded-full"></div>
-                            <div class="mb-1 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Versão 2.1 • Hoje</div>
+                            <div class="mb-1 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Versão 2.1 • Ontem</div>
                             <h4 class="text-lg font-bold text-slate-800 dark:text-white mb-2">Controle de Contas & Metas</h4>
                             <p class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-3">
                                 Adicionamos um novo módulo exclusivo para controle de parcelas e metas financeiras. Agora você pode marcar parcelas pagas individualmente e acompanhar o progresso dos seus objetivos.
@@ -331,23 +348,13 @@
                             </ul>
                         </div>
 
-                        <!-- Item de Atualização -->
+                        <!-- Item de Atualização 2.0 -->
                         <div class="relative">
                             <div class="absolute -left-[29px] top-0 bg-white dark:bg-slate-900 border-4 border-slate-300 dark:border-slate-600 w-4 h-4 rounded-full"></div>
-                            <div class="mb-1 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Versão 2.0 • Ontem</div>
+                            <div class="mb-1 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Versão 2.0 • Semana Passada</div>
                             <h4 class="text-lg font-bold text-slate-800 dark:text-white mb-2">Filtros Financeiros</h4>
                             <p class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-3">
                                 Melhoria na visualização financeira com navegação entre meses. O sistema agora calcula automaticamente o saldo apenas do mês selecionado.
-                            </p>
-                        </div>
-
-                         <!-- Item de Atualização -->
-                        <div class="relative">
-                            <div class="absolute -left-[29px] top-0 bg-white dark:bg-slate-900 border-4 border-slate-300 dark:border-slate-600 w-4 h-4 rounded-full"></div>
-                            <div class="mb-1 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Versão 1.5 • Semana Passada</div>
-                            <h4 class="text-lg font-bold text-slate-800 dark:text-white mb-2">CRM Otimizado</h4>
-                            <p class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-3">
-                                Pipeline de vendas aprimorado com novos status e integração automática com o fluxo de caixa ao fechar uma venda.
                             </p>
                         </div>
 
@@ -989,6 +996,7 @@
     <!-- UI & RENDER SCRIPT -->
     <script>
         const SYSTEM_SECRET = "@uroraSystem@2024";
+        const CURRENT_VERSION_ID = '2.2'; // Versão atual para controle de notificação
         let chartPJ, chartPF;
 
         function togglePrivacy() {
@@ -1015,6 +1023,43 @@
             window.viewDate.setMonth(window.viewDate.getMonth() + delta);
             renderizar();
         };
+
+        // --- NOTIFICATION BADGE LOGIC ---
+        function checkNotifications() {
+            const last = localStorage.getItem('gestor_last_news_id');
+            const badge = document.getElementById('notif-badge');
+            if (last !== CURRENT_VERSION_ID && badge) {
+                badge.classList.remove('hidden');
+            } else if (badge) {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function mudarAba(aba) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${aba}`).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-blue-600', 'text-white', 'shadow-md');
+                btn.classList.add('text-slate-600', 'dark:text-slate-400');
+            });
+            document.getElementById(`btn-${aba}`).classList.add('active', 'bg-blue-600', 'text-white', 'shadow-md');
+            document.getElementById(`btn-${aba}`).classList.remove('text-slate-600', 'dark:text-slate-400');
+
+            // Se for aba de notificações, marca como lido
+            if (aba === 'notificacoes') {
+                localStorage.setItem('gestor_last_news_id', CURRENT_VERSION_ID);
+                checkNotifications();
+            }
+
+            renderizar();
+        }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
+        function mostrarToast(m) { const t=document.getElementById('toast'); t.innerHTML=`<i class="ph-bold ph-check"></i> ${m}`; t.classList.remove('hidden','translate-y-10','opacity-0'); setTimeout(()=>{ t.classList.add('translate-y-10','opacity-0'); setTimeout(()=>t.classList.add('hidden'),300) },3000); }
+        function copiarScript(t) { navigator.clipboard.writeText(t); mostrarToast('Copiado!'); }
+        function salvarConfig() { localStorage.setItem('gemini_api_key', document.getElementById('input-api-key').value); document.getElementById('modal-config').classList.add('hidden'); }
+        function abrirConfig() { document.getElementById('input-api-key').value = localStorage.getItem('gemini_api_key')||''; document.getElementById('modal-config').classList.remove('hidden'); }
+        function fecharConfig() { document.getElementById('modal-config').classList.add('hidden'); }
 
         function renderizar() {
             renderCRM();
@@ -1554,8 +1599,16 @@
             });
             document.getElementById(`btn-${aba}`).classList.add('active', 'bg-blue-600', 'text-white', 'shadow-md');
             document.getElementById(`btn-${aba}`).classList.remove('text-slate-600', 'dark:text-slate-400');
+
+            // Se for aba de notificações, marca como lido
+            if (aba === 'notificacoes') {
+                localStorage.setItem('gestor_last_news_id', CURRENT_VERSION_ID);
+                checkNotifications();
+            }
+
             renderizar();
         }
+
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
         function mostrarToast(m) { const t=document.getElementById('toast'); t.innerHTML=`<i class="ph-bold ph-check"></i> ${m}`; t.classList.remove('hidden','translate-y-10','opacity-0'); setTimeout(()=>{ t.classList.add('translate-y-10','opacity-0'); setTimeout(()=>t.classList.add('hidden'),300) },3000); }
         function copiarScript(t) { navigator.clipboard.writeText(t); mostrarToast('Copiado!'); }
