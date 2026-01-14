@@ -31,9 +31,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <!-- PDF Generation Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         body { font-family: 'Segoe UI', sans-serif; -webkit-user-select: none; user-select: none; overflow: hidden; }
@@ -222,15 +219,7 @@
 
                 <!-- CRM -->
                 <div id="view-crm" class="view-section fade-in">
-                    <!-- ... restante do conteúdo do CRM ... -->
                     <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 py-6 border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all w-full">
-                        <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Pipeline de Vendas</h2>
-                            <div class="flex gap-2">
-                                <button onclick="window.exportarLeads('pdf')" class="flex items-center gap-2 px-4 py-2 bg-rose-100 text-rose-600 hover:bg-rose-200 rounded-lg font-bold text-xs transition-colors"><i class="ph-bold ph-file-pdf"></i> PDF</button>
-                                <button onclick="window.exportarLeads('csv')" class="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-600 hover:bg-emerald-200 rounded-lg font-bold text-xs transition-colors"><i class="ph-bold ph-file-csv"></i> Excel</button>
-                            </div>
-                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group"><div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="ph-fill ph-trend-up text-6xl text-blue-600"></i></div><p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Em Negociação</p><h3 class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1" id="crm-potencial">R$ 0,00</h3><div class="mt-2 text-xs font-medium text-slate-400"><span id="crm-count-negociacao">0</span> leads</div></div>
                             <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border-l-4 border-amber-400 shadow-sm dark:border-slate-800 relative overflow-hidden"><div class="flex justify-between items-start"><div><p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Sem Retorno</p><h3 class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1" id="crm-sem-retorno">R$ 0,00</h3></div><div class="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-lg text-amber-600 dark:text-amber-400"><i class="ph-bold ph-clock text-xl"></i></div></div><p class="text-xs text-slate-400 mt-2"><span id="crm-count-sem-retorno">0</span> aguardando</p></div>
@@ -323,16 +312,10 @@
                     <!-- NAV E TOTAIS STICKY -->
                     <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 shadow-sm w-full">
                         <!-- Navegação de Mês -->
-                        <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-                            <div class="flex items-center gap-6">
-                                <button onclick="window.mudarMes(-1)" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-white transition-colors"><i class="ph-bold ph-caret-left text-xl"></i></button>
-                                <h3 id="label-mes-ano" class="text-xl font-bold capitalize text-slate-800 dark:text-white w-40 text-center">...</h3>
-                                <button onclick="window.mudarMes(1)" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-white transition-colors"><i class="ph-bold ph-caret-right text-xl"></i></button>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="window.exportarFinanceiro('pj', 'pdf')" class="flex items-center gap-2 px-4 py-2 bg-rose-100 text-rose-600 hover:bg-rose-200 rounded-lg font-bold text-xs transition-colors"><i class="ph-bold ph-file-pdf"></i> PDF</button>
-                                <button onclick="window.exportarFinanceiro('pj', 'csv')" class="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-600 hover:bg-emerald-200 rounded-lg font-bold text-xs transition-colors"><i class="ph-bold ph-file-csv"></i> Excel</button>
-                            </div>
+                        <div class="flex items-center justify-center gap-6 mb-6">
+                            <button onclick="window.mudarMes(-1)" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-white transition-colors"><i class="ph-bold ph-caret-left text-xl"></i></button>
+                            <h3 id="label-mes-ano" class="text-xl font-bold capitalize text-slate-800 dark:text-white w-40 text-center">...</h3>
+                            <button onclick="window.mudarMes(1)" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-white transition-colors"><i class="ph-bold ph-caret-right text-xl"></i></button>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -417,16 +400,10 @@
                     <!-- NAV E TOTAIS STICKY -->
                     <div class="sticky top-0 z-40 bg-slate-50 dark:bg-slate-950 px-4 md:px-8 pt-6 pb-4 border-b border-slate-200 dark:border-slate-800 shadow-sm w-full">
                         <!-- Navegação de Mês -->
-                        <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-                            <div class="flex items-center gap-6">
-                                <button onclick="window.mudarMes(-1)" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-white transition-colors"><i class="ph-bold ph-caret-left text-xl"></i></button>
-                                <h3 id="label-mes-ano-pf" class="text-xl font-bold capitalize text-slate-800 dark:text-white w-40 text-center">...</h3>
-                                <button onclick="window.mudarMes(1)" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-white transition-colors"><i class="ph-bold ph-caret-right text-xl"></i></button>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="window.exportarFinanceiro('pf', 'pdf')" class="flex items-center gap-2 px-4 py-2 bg-rose-100 text-rose-600 hover:bg-rose-200 rounded-lg font-bold text-xs transition-colors"><i class="ph-bold ph-file-pdf"></i> PDF</button>
-                                <button onclick="window.exportarFinanceiro('pf', 'csv')" class="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-600 hover:bg-emerald-200 rounded-lg font-bold text-xs transition-colors"><i class="ph-bold ph-file-csv"></i> Excel</button>
-                            </div>
+                        <div class="flex items-center justify-center gap-6 mb-6">
+                            <button onclick="window.mudarMes(-1)" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-white transition-colors"><i class="ph-bold ph-caret-left text-xl"></i></button>
+                            <h3 id="label-mes-ano-pf" class="text-xl font-bold capitalize text-slate-800 dark:text-white w-40 text-center">...</h3>
+                            <button onclick="window.mudarMes(1)" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-white transition-colors"><i class="ph-bold ph-caret-right text-xl"></i></button>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -890,66 +867,6 @@
             }
         };
 
-        // --- EXPORTAR DADOS (NOVO) ---
-        window.exportarLeads = (formato) => {
-            const dados = window.DB.leads.map(l => [l.nome, l.empresa || '-', window.formatMoney(l.valor), l.status]);
-            const colunas = ["Nome", "Empresa", "Valor", "Status"];
-            const titulo = "Relatorio_Leads";
-
-            if(formato === 'pdf') exportToPDF(titulo, colunas, dados);
-            else exportToCSV(titulo, colunas, dados);
-        };
-
-        window.exportarFinanceiro = (tipo, formato) => {
-            const list = tipo === 'pj' ? window.DB.pj : window.DB.pf;
-            
-            // Filtra pelo mês atual da visualização
-            const mes = window.viewDate.getMonth();
-            const ano = window.viewDate.getFullYear();
-            
-            const filteredList = list.filter(t => {
-                const parts = t.data.split('/');
-                const tDate = new Date(parts[2], parts[1]-1, parts[0]);
-                return tDate.getMonth() === mes && tDate.getFullYear() === ano;
-            });
-
-            const dados = filteredList.map(t => [t.data, t.desc, t.op.toUpperCase(), window.formatMoney(t.valor)]);
-            const colunas = ["Data", "Descrição", "Tipo", "Valor"];
-            const nomeMes = window.viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-            const titulo = `Extrato_${tipo.toUpperCase()}_${nomeMes.replace(' ', '_')}`;
-
-            if(formato === 'pdf') exportToPDF(titulo, colunas, dados);
-            else exportToCSV(titulo, colunas, dados);
-        };
-
-        function exportToCSV(filename, cols, rows) {
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += cols.join(",") + "\r\n";
-            rows.forEach(row => {
-                const rowStr = row.map(e => `"${String(e).replace(/"/g, '""')}"`).join(",");
-                csvContent += rowStr + "\r\n";
-            });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `${filename}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-        }
-
-        function exportToPDF(filename, cols, rows) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text(filename.replace(/_/g, ' '), 14, 15);
-            doc.autoTable({
-                head: [cols],
-                body: rows,
-                startY: 20,
-            });
-            doc.save(`${filename}.pdf`);
-        }
-
         // --- SALVAR PERFIL (CORREÇÃO AQUI) ---
         window.salvarPerfil = async (e) => {
             e.preventDefault();
@@ -1233,6 +1150,7 @@
                     </div>`;
                     const container = list.lastElementChild.querySelector('.group-container');
                     items.forEach(l => {
+                        // Logic for Buttons based on Group
                         let btns = `
                             <button onclick="window.alterarStatusLead('${l.id}', 'ganho')" class="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors" title="Fechar Venda"><i class="ph-bold ph-check"></i></button>
                             <button onclick="window.alterarStatusLead('${l.id}', 'sem_retorno')" class="p-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors" title="Sem Retorno"><i class="ph-bold ph-clock"></i></button>
@@ -1245,7 +1163,10 @@
                             btns = `<button onclick="window.alterarStatusLead('${l.id}', 'negociacao')" class="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors" title="Reativar"><i class="ph-bold ph-arrow-u-up-left text-lg"></i></button>`;
                         }
 
+                        // Social Link Logic
                         let socialHtml = l.social ? `<a href="${l.social}" target="_blank" class="text-pink-500 hover:text-pink-600 dark:hover:text-pink-400 p-1.5 rounded-lg hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors" title="Rede Social"><i class="ph-bold ph-instagram-logo text-lg"></i></a>` : '';
+                        
+                        // Doc Logic
                         let docHtml = l.doc ? `<span class="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 truncate max-w-[80px]" title="${l.doc}">${l.doc}</span>` : '';
 
                         container.innerHTML += `
@@ -1273,7 +1194,7 @@
                     });
                 }
             });
-            
+            // Update Totals
             const neg = window.DB.leads.filter(l => l.status === 'negociacao');
             const ati = window.DB.leads.filter(l => l.status === 'ganho');
             const sem = window.DB.leads.filter(l => l.status === 'sem_retorno');
@@ -1289,6 +1210,7 @@
             if(document.getElementById('crm-count-inativos')) document.getElementById('crm-count-inativos').innerText = ina.length;
             if(document.getElementById('total-negociacao-list')) document.getElementById('total-negociacao-list').innerText = window.formatMoney(window.DB.leads.reduce((a,b)=>a+b.valor,0));
 
+            // Specialized Views
             const semList = document.getElementById('lista-sem-retorno'); if(semList) { semList.innerHTML = ''; sem.forEach(l => semList.innerHTML += createSimpleCard(l)); }
             const atiList = document.getElementById('lista-ativos-grid'); if(atiList) { atiList.innerHTML = ''; ati.forEach(l => atiList.innerHTML += createSimpleCard(l, true)); }
             const conList = document.getElementById('lista-contratos'); if(conList) { conList.innerHTML = ''; ati.forEach(l => conList.innerHTML += createContractCard(l)); }
@@ -1337,7 +1259,8 @@
             }
 
             const filteredList = list.filter(t => {
-                const parts = t.data.split('/');
+                const parts = t.data.split('/'); // DD/MM/AAAA
+                // Cria data em UTC para evitar problemas de fuso
                 const tDate = new Date(parts[2], parts[1]-1, parts[0]);
                 return tDate.getMonth() === mes && tDate.getFullYear() === ano;
             });
